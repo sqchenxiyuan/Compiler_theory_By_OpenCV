@@ -308,23 +308,63 @@ out:模糊后图片
 */
 Mat CMycv::Filter_Blur_Line(Mat* img,int size)
 {
-	if (size == 3)
+	if (size % 2 == 1)
 	{
-		int mod[9] = { 1, 1, 1,
-			1, 1, 1,
-			1, 1, 1 };
-		CFilteringMask mask(3, mod);
-		return mask.ALLProcess(img);
-	}
-	else if (size==5)
-	{
-		int mod[25] = { 1, 1, 1, 1, 1,
-			1, 1, 1, 1, 1,
-			1, 1, 1, 1, 1,
-			1, 1, 1, 1, 1,
-			1, 1, 1, 1, 1, };
-		CFilteringMask mask(5, mod);
+		int * mod = new int[size*size];
+		for (int i = 0; i < size*size; i++)
+		{
+			mod[i] = 1;
+		}
+		CFilteringMask mask(size, mod);
 		return mask.ALLProcess(img);
 	}
 	return Mat(256,256,CV_8U,Scalar(0));
+}
+
+/*
+int:单通道图片 中值滤波模板大小
+out:中值滤波后图片
+*/
+Mat CMycv::Filter_Median(Mat* img,int size)
+{
+	int wi = img->cols;
+	int hi = img->rows;
+	Mat out(hi, wi, CV_8U, Scalar(0));
+	for (int i = 0; i < hi; i++)
+	{
+		for (int j = 0; j < wi; j++)
+		{
+			out.at<uchar>(i, j) = Filter_Median(img, i, j, size);
+		}
+	}
+	return out;
+}
+
+
+/*
+int:单通道图片 坐标 中值滤波模板大小
+out:该坐标的值
+*/
+int CMycv::Filter_Median(Mat* img, int posx, int posy, int size)
+{
+	vector<int> nums;
+	int wi = img->cols;
+	int hi = img->rows;
+	int c = (size - 1) / 2;
+	int med = 0;
+	for (int i = -c; i <= c; i++)
+	{
+		for (int j = -c; j <= c; j++)
+		{
+			int py = posy - i;
+			int px = posx - j;
+			if (py < 0) py = 0;
+			if (px < 0) px = 0;
+			if (py >= wi) py = wi - 1;
+			if (px >= hi) px = hi - 1;
+			nums.push_back(img->at<uchar>(px, py));
+		}
+	}
+	sort(nums.begin(), nums.end());
+	return nums.at(size*size/2);
 }

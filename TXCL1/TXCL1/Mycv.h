@@ -18,6 +18,7 @@ public:
 	Mat Histogram(Mat* img, int hi, int wi);//单通道直方图
 	Mat Equalization(Mat* img);//灰度图直方图均衡
 	Mat Filter_Blur_Line(Mat* img, int size);//线性滤波模糊
+	Mat Filter_Median(Mat* img, int size);
 
 	//主要内部使用API
 	int* Histogram_Group(Mat* img);//直方图数组
@@ -25,6 +26,9 @@ public:
 	int GreyValue(Mat* img, bool maxormin);//单通道最灰度值
 	Mat Histogram(Mat* img, int hi, int wi, float max);//单通道直方图
 	Mat Histogram_Equalization(Mat* img, float* l);//灰度图直方图均衡
+
+	//滤波用通用模板
+	int Filter_Median(Mat* img, int posx, int posy, int size);
 private:
 	void rect(Mat *img, Point sp, Point ep, int co);
 };

@@ -44,7 +44,7 @@ int CFilteringMask::processing(Mat* img, int posx, int posy)
 	int x=0;// 权重总和
 	for (int i = -c; i <= c; i++)
 	{
-		for (int j = -c; j <= -c; j++)
+		for (int j = -c; j <= c; j++)
 		{
 			int py = posy - i;
 			int px = posx - j;
