@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Mycv.h"
+#include "FilteringMask.h"
 
 
 CMycv::CMycv()
@@ -41,9 +42,9 @@ Mat CMycv::RGB_Equalization(Mat* img)
 	Mat r = RGB_Extract(img, 2);
 	Mat g = RGB_Extract(img, 1);
 	Mat b = RGB_Extract(img, 0);
-	Mat er = Gray_Equalization(&r);
-	Mat eg = Gray_Equalization(&g);
-	Mat eb = Gray_Equalization(&b);
+	Mat er = Equalization(&r);
+	Mat eg = Equalization(&g);
+	Mat eb = Equalization(&b);
 	Mat rgb = RGB_Synthesis(&er, &eg, &eb);
 	return rgb;
 }
@@ -127,7 +128,7 @@ Mat CMycv::Histogram(Mat* img, int hi, int wi, float  max)
 int:单通道图片
 out:均值化后的单通道图
 */
-Mat  CMycv::Gray_Equalization(Mat* img)
+Mat  CMycv::Equalization(Mat* img)
 {
 	int* c;
 	float *l;
@@ -299,4 +300,31 @@ void CMycv::rect(Mat *img, Point sp, Point ep, int co)
 			img->at<uchar>(i, j) = co;
 		}
 	}
+}
+
+/*
+int:单通道图片,模糊模板大小（3或5）
+out:模糊后图片
+*/
+Mat CMycv::Filter_Blur_Line(Mat* img,int size)
+{
+	if (size == 3)
+	{
+		int mod[9] = { 1, 1, 1,
+			1, 1, 1,
+			1, 1, 1 };
+		CFilteringMask mask(3, mod);
+		return mask.ALLProcess(img);
+	}
+	else if (size==5)
+	{
+		int mod[25] = { 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, };
+		CFilteringMask mask(5, mod);
+		return mask.ALLProcess(img);
+	}
+	return Mat(256,256,CV_8U,Scalar(0));
 }
