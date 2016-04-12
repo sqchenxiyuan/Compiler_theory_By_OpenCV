@@ -370,22 +370,35 @@ int CMycv::Filter_Median(Mat* img, int posx, int posy, int size)
 }
 
 /*
-int:单通道图片 算子大小ture（8） false（4）
+int:单通道图片 算子大小(中心)1(9) 2(5) 3(-5) 4(-9)
 out:滤波后的图
 */
-Mat CMycv::Filter_Laplasse_operator(Mat* img, bool type)
+Mat CMycv::Filter_Laplasse_operator(Mat* img, int type)
 {
-	int mod[] ={0,-1,0,
-				-1,5,-1,
-				0,-1,0};
-	if (type)
+	if (type<1 || type>4) return Mat(256, 256, CV_8U, Scalar(0));
+
+
+	switch (type)
 	{
-		mod[0] = -1;
-		mod[2] = -1;
-		mod[4] = 9;
-		mod[6] = -1;
-		mod[8] = -1;
+	case 1:{int x[] = { -1, -1, -1,
+					-1, 9, -1,
+					-1, -1, -1 };
+		   CFilteringMask mask(3, 1.0, x);
+		   return mask.ALLProcess(img); }
+	case 2:{int x[] = { 0, -1, 0,
+					-1, 5, -1,
+					0, -1, 0 };
+		   CFilteringMask mask(3, 1.0, x);
+		   return mask.ALLProcess(img); }
+	case 3:{int x[] = { 0, 1, 0,
+					1, -5, 1,
+					0, 1, 0 };
+		   CFilteringMask mask(3, -1.0, x);
+		   return mask.ALLProcess(img); }
+	case 4:{int x[] = { 1, 1, 1,
+					1, -9, 1,
+					1, 1, 1 };
+		   CFilteringMask mask(3, -1.0,x);
+		   return mask.ALLProcess(img); }
 	}
-	CFilteringMask mask(3,1.0, mod);
-	return mask.ALLProcess(img);
 }

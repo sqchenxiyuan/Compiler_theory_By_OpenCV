@@ -89,33 +89,23 @@ void CFilteringMask::Adjustment(vector<vector<float>>* img)
 			if (x < min) min = x;
 		}
 	}
-	if (max < 256 && min >= 0) return ;
-	if (min < 0)
+	//cout << max << "|||" << min << endl;
+	float ci = min;
+	float cha = max-min;//最大最小的差
+	max = 0;
+	min = 256;
+	for (int i = 0; i < hi; i++)
 	{
-		float c = min;
-		float xishu = 255.0 / max;
-		max = 0;
-		min = 256;
-		for (int i = 0; i < hi; i++)
+		for (int j = 0; j < wi; j++)
 		{
-			for (int j = 0; j < wi; j++)
-			{
-				float x = img->at(i).at(j);
-				if (x < 0)
-				{
-					x = 0;
-				}
-				else
-				{
-					x = x*xishu;
-				}
-				img->at(i).at(j) = x;
-				if (x > max) max = x;
-				if (x < min) min = x;
-			}
+			float x = img->at(i).at(j)-ci;
+			x = 255.0*(x / cha);
+			img->at(i).at(j) = x;
+			if (x > max) max = x;
+			if (x < min) min = x;
 		}
 	}
-	return;
+	//cout << max << "|||" << min << endl;
 }
 
 

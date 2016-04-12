@@ -38,23 +38,27 @@ int _tmain(int argc, _TCHAR* argv[])
 	
 
 	//线性模糊
-	Mat FilterBlurLine1 = mcv.Filter_Blur_Line(&grayimg,3);
-	Mat FilterBlurLine2 = mcv.Filter_Blur_Line(&grayimg,7);
-	imshow("线性模糊3*3", FilterBlurLine1);
-	imshow("线性模糊7*7", FilterBlurLine2);
+	//Mat FilterBlurLine1 = mcv.Filter_Blur_Line(&grayimg,3);
+	//Mat FilterBlurLine2 = mcv.Filter_Blur_Line(&grayimg,7);
+	//imshow("线性模糊3*3", FilterBlurLine1);
+	//imshow("线性模糊7*7", FilterBlurLine2);
 	
 	//中值滤波
-	Mat FilterMedian = mcv.Filter_Median(&img2, 3);
-	imshow("中值滤波", FilterMedian);
+	//Mat FilterMedian = mcv.Filter_Median(&img2, 3);
+	//imshow("中值滤波", FilterMedian);
 
 	//拉布拉斯算子
-	Mat Laplasse1 = mcv.Filter_Laplasse_operator(&moon, false);
-	Mat Laplasse2 = mcv.Filter_Laplasse_operator(&moon, true);
-	imshow("拉布拉斯算子4", Laplasse1);
-	imshow("拉布拉斯算子8", Laplasse2);
+	Mat Laplasse1 = mcv.Filter_Laplasse_operator(&moon, 1);
+	Mat Laplasse2 = mcv.Filter_Laplasse_operator(&moon, 2);
+	Mat Laplasse3 = mcv.Filter_Laplasse_operator(&moon, 3);
+	Mat Laplasse4 = mcv.Filter_Laplasse_operator(&moon, 4);
+	imshow("拉布拉斯算子1", Laplasse1);
+	imshow("拉布拉斯算子2", Laplasse2);
+	imshow("拉布拉斯算子3", Laplasse3);
+	imshow("拉布拉斯算子4", Laplasse4);
 
-	imshow("img", img);
-	imshow("img2", img2);
+	//imshow("img", img);
+	//imshow("img2", img2);
 	imshow("moon", moon);
 	waitKey();
 	return 0;
