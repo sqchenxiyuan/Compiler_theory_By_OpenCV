@@ -14,6 +14,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	CMycv mcv;
 	Mat img = imread("src/test1.jpg", -1);
 	Mat img2 = imread("src/MED.tif", -1);
+	Mat moon = imread("src/moon.tif", -1);
 	
 	//获取直方图
 	//Mat hist = mcv.RGB_Histogram(&img, 256, 256);
@@ -38,16 +39,23 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	//线性模糊
 	Mat FilterBlurLine1 = mcv.Filter_Blur_Line(&grayimg,3);
-	Mat FilterBlurLine2 = mcv.Filter_Blur_Line(&grayimg,5);
+	Mat FilterBlurLine2 = mcv.Filter_Blur_Line(&grayimg,7);
 	imshow("线性模糊3*3", FilterBlurLine1);
-	imshow("线性模糊5*5", FilterBlurLine2);
+	imshow("线性模糊7*7", FilterBlurLine2);
 	
 	//中值滤波
 	Mat FilterMedian = mcv.Filter_Median(&img2, 3);
 	imshow("中值滤波", FilterMedian);
 
+	//拉布拉斯算子
+	Mat Laplasse1 = mcv.Filter_Laplasse_operator(&moon, false);
+	Mat Laplasse2 = mcv.Filter_Laplasse_operator(&moon, true);
+	imshow("拉布拉斯算子4", Laplasse1);
+	imshow("拉布拉斯算子8", Laplasse2);
+
 	imshow("img", img);
 	imshow("img2", img2);
+	imshow("moon", moon);
 	waitKey();
 	return 0;
 }

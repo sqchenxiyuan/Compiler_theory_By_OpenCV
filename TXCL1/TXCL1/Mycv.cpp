@@ -315,7 +315,7 @@ Mat CMycv::Filter_Blur_Line(Mat* img,int size)
 		{
 			mod[i] = 1;
 		}
-		CFilteringMask mask(size, mod);
+		CFilteringMask mask(size,1.0/size/size, mod);
 		return mask.ALLProcess(img);
 	}
 	return Mat(256,256,CV_8U,Scalar(0));
@@ -367,4 +367,25 @@ int CMycv::Filter_Median(Mat* img, int posx, int posy, int size)
 	}
 	sort(nums.begin(), nums.end());
 	return nums.at(size*size/2);
+}
+
+/*
+int:单通道图片 算子大小ture（8） false（4）
+out:滤波后的图
+*/
+Mat CMycv::Filter_Laplasse_operator(Mat* img, bool type)
+{
+	int mod[] ={0,-1,0,
+				-1,5,-1,
+				0,-1,0};
+	if (type)
+	{
+		mod[0] = -1;
+		mod[2] = -1;
+		mod[4] = 9;
+		mod[6] = -1;
+		mod[8] = -1;
+	}
+	CFilteringMask mask(3,1.0, mod);
+	return mask.ALLProcess(img);
 }
