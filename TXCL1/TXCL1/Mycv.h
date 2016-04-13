@@ -20,6 +20,8 @@ public:
 	Mat Filter_Blur_Line(Mat* img, int size);//线性滤波模糊
 	Mat Filter_Median(Mat* img, int size);//中值滤波
 	Mat Filter_Laplasse_operator(Mat* img, int type);//拉布拉斯算子
+	Mat DFT(Mat img);//离散傅里叶变换
+	Mat IDFT(Mat img);//离散傅里叶反变换
 
 	//主要内部使用API
 	int* Histogram_Group(Mat* img);//直方图数组

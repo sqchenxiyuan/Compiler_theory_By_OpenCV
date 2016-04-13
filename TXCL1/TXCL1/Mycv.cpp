@@ -402,3 +402,88 @@ Mat CMycv::Filter_Laplasse_operator(Mat* img, int type)
 		   return mask.ALLProcess(img); }
 	}
 }
+
+/*
+int:单通道图片 
+out:傅里叶谱
+*/
+Mat CMycv::DFT(Mat img)//来自opencv官网
+{
+
+	Mat padded;                            //expand input image to optimal size
+	int m = getOptimalDFTSize(img.rows);
+	int n = getOptimalDFTSize(img.cols); // on the border add zero values
+
+	copyMakeBorder(img, padded, 0, m - img.rows, 0, n - img.cols, BORDER_CONSTANT, Scalar::all(0));
+
+	Mat planes[] = { Mat_<float>(padded), Mat::zeros(padded.size(), CV_32F) };
+	Mat complexI;
+	merge(planes, 2, complexI);         // Add to the expanded another plane with zeros
+
+
+	imshow("test1", padded);
+	dft(complexI, complexI);            // this way the result may fit in the source matrix
+
+
+
+	Mat test=complexI.clone();
+	idft(test, test);
+	split(test, planes);
+	//magnitude(planes[0], planes[1], planes[0]);
+	imshow("test2", planes[0]);
+
+
+	// compute the magnitude and switch to logarithmic scale
+	// => log(1 + sqrt(Re(DFT(I))^2 + Im(DFT(I))^2))
+	split(complexI, planes);                   // planes[0] = Re(DFT(I), planes[1] = Im(DFT(I))
+	magnitude(planes[0], planes[1], planes[0]);// planes[0] = magnitude  
+	Mat magI = planes[0];
+
+	
+
+	magI += Scalar::all(1);                    // switch to logarithmic scale
+	log(magI, magI);
+
+	// crop the spectrum, if it has an odd number of rows or columns
+	magI = magI(Rect(0, 0, magI.cols & -2, magI.rows & -2));
+
+	Mat _magI = magI.clone();
+	// rearrange the quadrants of Fourier image  so that the origin is at the image center        
+	int cx = magI.cols / 2;
+	int cy = magI.rows / 2;
+
+	Mat q0(_magI, Rect(0, 0, cx, cy));   // Top-Left - Create a ROI per quadrant 
+	Mat q1(_magI, Rect(cx, 0, cx, cy));  // Top-Right
+	Mat q2(_magI, Rect(0, cy, cx, cy));  // Bottom-Left
+	Mat q3(_magI, Rect(cx, cy, cx, cy)); // Bottom-Right
+
+	Mat tmp;                           // swap quadrants (Top-Left with Bottom-Right)
+	q0.copyTo(tmp);
+	q3.copyTo(q0);
+	tmp.copyTo(q3);
+
+	q1.copyTo(tmp);                    // swap quadrant (Top-Right with Bottom-Left)
+	q2.copyTo(q1);
+	tmp.copyTo(q2);
+
+	normalize(_magI, _magI, 0, 1, CV_MINMAX); // Transform the matrix with float values into a 
+	// viewable image form (float between values 0 and 1).
+
+	//imshow("Input Image", img);    // Show the result
+	//imshow("spectrum magnitude", magI);
+
+	return _magI;
+}
+
+
+/*
+int:傅里叶谱
+out:单通道图片
+*/
+Mat CMycv::IDFT(Mat img)
+{
+	Mat ifft;
+	idft(img, ifft, DFT_REAL_OUTPUT);
+	normalize(ifft, ifft, 0, 1, CV_MINMAX);
+	return ifft;
+}

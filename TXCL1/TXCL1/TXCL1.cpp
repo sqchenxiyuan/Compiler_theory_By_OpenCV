@@ -48,14 +48,21 @@ int _tmain(int argc, _TCHAR* argv[])
 	//imshow("中值滤波", FilterMedian);
 
 	//拉布拉斯算子
-	Mat Laplasse1 = mcv.Filter_Laplasse_operator(&moon, 1);
-	Mat Laplasse2 = mcv.Filter_Laplasse_operator(&moon, 2);
-	Mat Laplasse3 = mcv.Filter_Laplasse_operator(&moon, 3);
-	Mat Laplasse4 = mcv.Filter_Laplasse_operator(&moon, 4);
-	imshow("拉布拉斯算子1", Laplasse1);
-	imshow("拉布拉斯算子2", Laplasse2);
-	imshow("拉布拉斯算子3", Laplasse3);
-	imshow("拉布拉斯算子4", Laplasse4);
+	//Mat Laplasse1 = mcv.Filter_Laplasse_operator(&moon, 1);
+	//Mat Laplasse2 = mcv.Filter_Laplasse_operator(&moon, 2);
+	//Mat Laplasse3 = mcv.Filter_Laplasse_operator(&moon, 3);
+	//Mat Laplasse4 = mcv.Filter_Laplasse_operator(&moon, 4);
+	//imshow("拉布拉斯算子1", Laplasse1);
+	//imshow("拉布拉斯算子2", Laplasse2);
+	//imshow("拉布拉斯算子3", Laplasse3);
+	//imshow("拉布拉斯算子4", Laplasse4);
+
+	//DFT
+	Mat dft = mcv.DFT(moon);
+	imshow("dft", dft);
+	Mat idft = mcv.IDFT(dft);
+	imshow("idft", idft);
+
 
 	//imshow("img", img);
 	//imshow("img2", img2);
