@@ -15,7 +15,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	Mat img = imread("src/test1.jpg", -1);
 	Mat img2 = imread("src/MED.tif", -1);
 	Mat moon = imread("src/moon.tif", -1);
-	Mat dfttest = imread("src/DFTtest1.tif", -1);
+	Mat dfttest = imread("src/DFT_IDFT测试用例.tif", -1);
 	
 	//获取直方图
 	//Mat hist = mcv.RGB_Histogram(&img, 256, 256);
@@ -59,17 +59,95 @@ int _tmain(int argc, _TCHAR* argv[])
 	//imshow("拉布拉斯算子4", Laplasse4);
 
 	//DFT
-	Mat dft = mcv.DFT(dfttest);
-	Mat dft_amplitudespectrum = mcv.DFT_AmplitudeSpectrum(dft);
-	imshow("幅度谱", dft_amplitudespectrum);
-	Mat dft_phasespectrum=mcv.DFT_PhaseSpectrum(dft);
-	imshow("相位谱", dft_phasespectrum);
-	Mat dft_realpart = mcv.DFT_RealPart(dft,true);
-	imshow("实部谱", dft_realpart);
-	Mat dft_imaginarypart = mcv.DFT_ImaginaryPart(dft,false);
-	imshow("虚部谱", dft_imaginarypart);
-	Mat idft = mcv.IDFT(dft,dfttest.rows,dfttest.cols);
-	imshow("idft", idft);
+	//Mat dft = mcv.DFT(dfttest);
+	//Mat dft_amplitudespectrum = mcv.DFT_AmplitudeSpectrum(dft);
+	//imshow("幅度谱", dft_amplitudespectrum);
+	//Mat dft_phasespectrum=mcv.DFT_PhaseSpectrum(dft);
+	//imshow("相位谱", dft_phasespectrum);
+	//Mat dft_realpart = mcv.DFT_RealPart(dft,true);
+	//imshow("实部谱", dft_realpart);
+	//Mat dft_imaginarypart = mcv.DFT_ImaginaryPart(dft,false);
+	//imshow("虚部谱", dft_imaginarypart);
+	//Mat idft=mcv.IDFT(dft, dfttest.rows, dfttest.cols);
+
+
+	////////////////////    理想低通滤波    ////////////////////
+	/*Mat ilpftest = imread("src/低通滤波测试用例.tif", -1);
+	Mat dft_ilpf = mcv.DFT(ilpftest);
+	Mat filt_10 = mcv.DFT_ILPF(dft_ilpf.rows, dft_ilpf.cols, 10);
+	Mat filt_30 = mcv.DFT_ILPF(dft_ilpf.rows, dft_ilpf.cols, 30);
+	Mat filt_60 = mcv.DFT_ILPF(dft_ilpf.rows, dft_ilpf.cols, 60);
+	Mat filt_160 = mcv.DFT_ILPF(dft_ilpf.rows, dft_ilpf.cols, 160);
+	Mat filt_460 = mcv.DFT_ILPF(dft_ilpf.rows, dft_ilpf.cols, 460);
+	Mat dft_ilpf_10 = mcv.DFT_Filter(dft_ilpf, filt_10);
+	Mat dft_ilpf_30 = mcv.DFT_Filter(dft_ilpf, filt_30);
+	Mat dft_ilpf_60 = mcv.DFT_Filter(dft_ilpf, filt_60);
+	Mat dft_ilpf_160 = mcv.DFT_Filter(dft_ilpf, filt_160);
+	Mat dft_ilpf_460 = mcv.DFT_Filter(dft_ilpf, filt_460);
+	Mat idft_ilpf_10 = mcv.IDFT(dft_ilpf_10, ilpftest.rows, ilpftest.cols);
+	Mat idft_ilpf_30 = mcv.IDFT(dft_ilpf_30, ilpftest.rows, ilpftest.cols);
+	Mat idft_ilpf_60 = mcv.IDFT(dft_ilpf_60, ilpftest.rows, ilpftest.cols);
+	Mat idft_ilpf_160 = mcv.IDFT(dft_ilpf_160, ilpftest.rows, ilpftest.cols);
+	Mat idft_ilpf_460 = mcv.IDFT(dft_ilpf_460, ilpftest.rows, ilpftest.cols);
+	imshow("理想低通滤波器 d=10", idft_ilpf_10);
+	imshow("理想低通滤波器 d=30", idft_ilpf_30);
+	imshow("理想低通滤波器 d=60", idft_ilpf_60);
+	imshow("理想低通滤波器 d=160", idft_ilpf_160);
+	imshow("理想低通滤波器 d=460", idft_ilpf_460);
+	imshow("理想低通滤波测试用例", ilpftest);*/
+
+
+	////////////////////    布特沃斯低通滤波    ////////////////////
+	/*Mat ilpftest = imread("src/低通滤波测试用例.tif", -1);
+	Mat dft_ilpf = mcv.DFT(ilpftest);
+	Mat filt_10 = mcv.DFT_BLPF(dft_ilpf.rows, dft_ilpf.cols, 10, 2); mcv.DFT_Filter_Show(filt_10, "filt_10");
+	Mat filt_30 = mcv.DFT_BLPF(dft_ilpf.rows, dft_ilpf.cols, 30, 2); mcv.DFT_Filter_Show(filt_30, "filt_30");
+	Mat filt_60 = mcv.DFT_BLPF(dft_ilpf.rows, dft_ilpf.cols, 60, 2); mcv.DFT_Filter_Show(filt_60, "filt_60");
+	Mat filt_160 = mcv.DFT_BLPF(dft_ilpf.rows, dft_ilpf.cols, 160, 2); mcv.DFT_Filter_Show(filt_160, "filt_160");
+	Mat filt_460 = mcv.DFT_BLPF(dft_ilpf.rows, dft_ilpf.cols, 460, 2); mcv.DFT_Filter_Show(filt_460, "filt_460");
+	Mat dft_ilpf_10 = mcv.DFT_Filter(dft_ilpf, filt_10);
+	Mat dft_ilpf_30 = mcv.DFT_Filter(dft_ilpf, filt_30);
+	Mat dft_ilpf_60 = mcv.DFT_Filter(dft_ilpf, filt_60);
+	Mat dft_ilpf_160 = mcv.DFT_Filter(dft_ilpf, filt_160);
+	Mat dft_ilpf_460 = mcv.DFT_Filter(dft_ilpf, filt_460);
+	Mat idft_ilpf_10 = mcv.IDFT(dft_ilpf_10, ilpftest.rows, ilpftest.cols);
+	Mat idft_ilpf_30 = mcv.IDFT(dft_ilpf_30, ilpftest.rows, ilpftest.cols);
+	Mat idft_ilpf_60 = mcv.IDFT(dft_ilpf_60, ilpftest.rows, ilpftest.cols);
+	Mat idft_ilpf_160 = mcv.IDFT(dft_ilpf_160, ilpftest.rows, ilpftest.cols);
+	Mat idft_ilpf_460 = mcv.IDFT(dft_ilpf_460, ilpftest.rows, ilpftest.cols);
+	imshow("布特沃斯低通滤波器 d=10 n=2", idft_ilpf_10);
+	imshow("布特沃斯低通滤波器 d=30 n=2", idft_ilpf_30);
+	imshow("布特沃斯低通滤波器 d=60 n=2", idft_ilpf_60);
+	imshow("布特沃斯低通滤波器 d=160 n=2", idft_ilpf_160);
+	imshow("布特沃斯低通滤波器 d=460 n=2", idft_ilpf_460);
+	imshow("布特沃斯低通滤波测试用例", ilpftest);*/
+	
+
+	////////////////////    高斯低通滤波    ////////////////////
+	/*Mat ilpftest = imread("src/低通滤波测试用例.tif", -1);
+	Mat dft_ilpf = mcv.DFT(ilpftest);
+	Mat filt_10 = mcv.DFT_GLPF(dft_ilpf.rows, dft_ilpf.cols, 10); mcv.DFT_Filter_Show(filt_10, "filt_10");
+	Mat filt_30 = mcv.DFT_GLPF(dft_ilpf.rows, dft_ilpf.cols, 30); mcv.DFT_Filter_Show(filt_30, "filt_30");
+	Mat filt_60 = mcv.DFT_GLPF(dft_ilpf.rows, dft_ilpf.cols, 60); mcv.DFT_Filter_Show(filt_60, "filt_60");
+	Mat filt_160 = mcv.DFT_GLPF(dft_ilpf.rows, dft_ilpf.cols, 160); mcv.DFT_Filter_Show(filt_160, "filt_160");
+	Mat filt_460 = mcv.DFT_GLPF(dft_ilpf.rows, dft_ilpf.cols, 460); mcv.DFT_Filter_Show(filt_460, "filt_460");
+	Mat dft_ilpf_10 = mcv.DFT_Filter(dft_ilpf, filt_10);
+	Mat dft_ilpf_30 = mcv.DFT_Filter(dft_ilpf, filt_30);
+	Mat dft_ilpf_60 = mcv.DFT_Filter(dft_ilpf, filt_60);
+	Mat dft_ilpf_160 = mcv.DFT_Filter(dft_ilpf, filt_160);
+	Mat dft_ilpf_460 = mcv.DFT_Filter(dft_ilpf, filt_460);
+	Mat idft_ilpf_10 = mcv.IDFT(dft_ilpf_10, ilpftest.rows, ilpftest.cols);
+	Mat idft_ilpf_30 = mcv.IDFT(dft_ilpf_30, ilpftest.rows, ilpftest.cols);
+	Mat idft_ilpf_60 = mcv.IDFT(dft_ilpf_60, ilpftest.rows, ilpftest.cols);
+	Mat idft_ilpf_160 = mcv.IDFT(dft_ilpf_160, ilpftest.rows, ilpftest.cols);
+	Mat idft_ilpf_460 = mcv.IDFT(dft_ilpf_460, ilpftest.rows, ilpftest.cols);
+	imshow("高斯低通滤波器 d=10", idft_ilpf_10);
+	imshow("高斯低通滤波器 d=30", idft_ilpf_30);
+	imshow("高斯低通滤波器 d=60", idft_ilpf_60);
+	imshow("高斯低通滤波器 d=160", idft_ilpf_160);
+	imshow("高斯低通滤波器 d=460", idft_ilpf_460);
+	imshow("高斯低通滤波测试用例", ilpftest);*/
+
 
 
 	//imshow("img", img);

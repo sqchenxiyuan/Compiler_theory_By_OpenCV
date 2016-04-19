@@ -605,3 +605,106 @@ Mat CMycv::DFT_Rotate(Mat img)
 
 	return _magI;
 }
+
+/*
+int:DFTÍ¼Ïñ£¨Ë«Í¨µÀÍ¼Ïñ£© ÂË²¨Æ÷Í¼Ïñ
+out:¹ýÂËºóÍ¼Ïñ
+*/
+Mat CMycv::DFT_Filter(Mat dftimg, Mat filter)
+{
+	int hi = dftimg.rows;
+	int wi = dftimg.cols;
+
+	Mat out;
+	Mat planes[2];
+
+
+	split(dftimg, planes);
+
+	for (int i = 0; i < hi; i++)
+	{
+		for (int j = 0; j < wi; j++)
+		{
+			planes[0].at<float>(i, j) = planes[0].at<float>(i, j)* filter.at<float>(i, j);
+			planes[1].at<float>(i, j) = planes[1].at<float>(i, j)* filter.at<float>(i, j);
+		}
+	}
+
+	merge(planes, 2, out);
+
+	return  out;
+}
+
+/*
+int:DFTÍ¼Ïñ£¨Ë«Í¨µÀÍ¼Ïñ£©µÄ¿í¸ß   D0
+out:ÂË²¨Æ÷
+*/
+Mat CMycv::DFT_ILPF(int hi,int wi, float D0)
+{
+	Mat filter(hi,wi,CV_32F,Scalar(0));
+	for (int i = 0; i < hi; i++)
+	{
+		for (int j = 0; j < wi; j++)
+		{
+			if (PointDistance(i, j, hi / 2, wi / 2) <= D0) filter.at<float>(i, j) = 1;
+			else filter.at<float>(i, j) = 0;
+		}
+	}
+	return  filter;
+}
+
+/*
+int:DFTÍ¼Ïñ£¨Ë«Í¨µÀÍ¼Ïñ£©µÄ¿í¸ß   D0	n½×Êý
+out:ÂË²¨Æ÷
+*/
+Mat CMycv::DFT_BLPF(int hi, int wi, float D0,int n)
+{
+	Mat filter(hi, wi, CV_32F, Scalar(0));
+	for (int i = 0; i < hi; i++)
+	{
+		for (int j = 0; j < wi; j++)
+		{
+			filter.at<float>(i, j) = 1 / (1 + powf((PointDistance(i, j, hi / 2, wi / 2) / D0), 2 * n));
+			
+		}
+	}
+	return  filter;
+}
+
+/*
+int:DFTÍ¼Ïñ£¨Ë«Í¨µÀÍ¼Ïñ£©µÄ¿í¸ß   D0
+out:ÂË²¨Æ÷
+*/
+Mat CMycv::DFT_GLPF(int hi, int wi, float D0)
+{
+	Mat filter(hi, wi, CV_32F, Scalar(0));
+	for (int i = 0; i < hi; i++)
+	{
+		for (int j = 0; j < wi; j++)
+		{
+			float d = PointDistance(i, j, hi / 2, wi / 2);
+			filter.at<float>(i, j) = powf(C_E, -1 * (d / D0)*(d / D0) / 2);
+		}
+	}
+	//cout << filter.at<float>(100, 100) << "==" << d << "==" << -1*(d / D0)*(d / D0)/2 << endl;
+	return  filter;
+}
+
+
+
+void CMycv::DFT_Filter_Show(Mat filter, char* name)
+{
+	normalize(filter, filter, 0, 1, CV_MINMAX);
+	imshow(name, filter);
+}
+
+/*
+int:Á½µã×ø±ê
+out:¾àÀë
+*/
+float CMycv::PointDistance(float p1x, float p1y, float p2x, float p2y)
+{
+	float x = p1x - p2x;
+	float y = p1y - p2y;
+	return sqrt(x*x + y*y);
+}

@@ -1,5 +1,5 @@
 #pragma once
-
+#define	C_E 2.718281
 
 class CMycv
 {
@@ -22,10 +22,17 @@ public:
 	Mat Filter_Laplasse_operator(Mat* img, int type);//拉布拉斯算子
 	Mat DFT(Mat img);//离散傅里叶变换  返回一个双通道图像（旋转后）
 	Mat IDFT(Mat dftimg, int hi, int wi);//离散傅里叶反变换
+
 	Mat DFT_AmplitudeSpectrum(Mat dftimg);//幅度谱
 	Mat DFT_PhaseSpectrum(Mat dftimg);//相位谱
 	Mat DFT_RealPart(Mat dftimg,bool _log);//实部图
 	Mat DFT_ImaginaryPart(Mat dftimg, bool log);//虚部图
+
+	Mat DFT_Filter(Mat dftimg, Mat filter);//滤波器与DFT作用
+	Mat DFT_ILPF(int hi, int wi, float D0);//理想低通滤波器
+	Mat DFT_BLPF(int hi, int wi, float D0,int n);//布特沃斯低通滤波器
+	Mat DFT_GLPF(int hi, int wi, float D0);//高斯低通滤波器
+	void DFT_Filter_Show(Mat filter , char* name);//显示滤波器
 
 	//主要内部使用API
 	int* Histogram_Group(Mat* img);//直方图数组
@@ -38,6 +45,8 @@ public:
 	int Filter_Median(Mat* img, int posx, int posy, int size);
 private:
 	void rect(Mat *img, Point sp, Point ep, int co);
+	float PointDistance(float p1x, float p1y, float p2x, float p2y);
+
 
 	Mat DFT_Rotate(Mat img);//选在DFT图像
 };
