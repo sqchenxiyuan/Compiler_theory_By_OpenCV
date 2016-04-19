@@ -303,19 +303,19 @@ void CMycv::rect(Mat *img, Point sp, Point ep, int co)
 }
 
 /*
-int:单通道图片,模糊模板大小（3或5）
+int:单通道图片,模糊模板大小(宽高)
 out:模糊后图片
 */
-Mat CMycv::Filter_Blur_Line(Mat* img,int size)
+Mat CMycv::Filter_Blur_Line(Mat* img, int size_w, int size_h)
 {
-	if (size % 2 == 1)
+	if (size_w % 2 == 1 && size_h % 2 == 1)
 	{
-		int * mod = new int[size*size];
-		for (int i = 0; i < size*size; i++)
+		int * mod = new int[size_w*size_h];
+		for (int i = 0; i < size_w*size_h; i++)
 		{
 			mod[i] = 1;
 		}
-		CFilteringMask mask(size,1.0/size/size, mod);
+		CFilteringMask mask(size_w, size_h, 1.0 / (size_w*size_h), mod);
 		return mask.ALLProcess(img);
 	}
 	return Mat(256,256,CV_8U,Scalar(0));
@@ -383,22 +383,22 @@ Mat CMycv::Filter_Laplasse_operator(Mat* img, int type)
 	case 1:{int x[] = { -1, -1, -1,
 					-1, 9, -1,
 					-1, -1, -1 };
-		   CFilteringMask mask(3, 1.0, x);
+		   CFilteringMask mask(3,3, 1.0, x);
 		   return mask.ALLProcess(img); }
 	case 2:{int x[] = { 0, -1, 0,
 					-1, 5, -1,
 					0, -1, 0 };
-		   CFilteringMask mask(3, 1.0, x);
+		   CFilteringMask mask(3,3, 1.0, x);
 		   return mask.ALLProcess(img); }
 	case 3:{int x[] = { 0, 1, 0,
 					1, -5, 1,
 					0, 1, 0 };
-		   CFilteringMask mask(3, -1.0, x);
+		   CFilteringMask mask(3,3, -1.0, x);
 		   return mask.ALLProcess(img); }
 	case 4:{int x[] = { 1, 1, 1,
 					1, -9, 1,
 					1, 1, 1 };
-		   CFilteringMask mask(3, -1.0,x);
+		   CFilteringMask mask(3,3, -1.0,x);
 		   return mask.ALLProcess(img); }
 	}
 }
@@ -410,36 +410,71 @@ out:傅里叶谱
 Mat CMycv::DFT(Mat img)//来自opencv官网
 {
 
-	Mat padded;                            //expand input image to optimal size
+	//扩展到适合FFT的尺寸
+	Mat padded;                         
 	int m = getOptimalDFTSize(img.rows);
 	int n = getOptimalDFTSize(img.cols); // on the border add zero values
 
 	copyMakeBorder(img, padded, 0, m - img.rows, 0, n - img.cols, BORDER_CONSTANT, Scalar::all(0));
 
+	//扩展为实部 虚部
 	Mat planes[] = { Mat_<float>(padded), Mat::zeros(padded.size(), CV_32F) };
 	Mat complexI;
-	merge(planes, 2, complexI);         // Add to the expanded another plane with zeros
+	//合成一张双通道图像
+	merge(planes, 2, complexI);      
 
 
-	imshow("test1", padded);
+	//DFT变换（依然是双通道图像）
 	dft(complexI, complexI);            // this way the result may fit in the source matrix
 
+	//旋转
+	complexI = DFT_Rotate(complexI);
 
 
-	Mat test=complexI.clone();
-	idft(test, test);
-	split(test, planes);
+	return complexI;
+}
+
+
+/*
+int:傅里叶谱(双通道图) 原图像： 宽 高
+out:单通道图片（反变换后的图片）
+*/
+Mat CMycv::IDFT(Mat dftimg,int hi,int wi)
+{
+
+	Mat ifft;
+	dftimg = DFT_Rotate(dftimg);
+	idft(dftimg, ifft, DFT_REAL_OUTPUT);
+	normalize(ifft, ifft, 0, 1, CV_MINMAX);
+	ifft = ifft(Rect(0, 0, wi, hi));
+	
+
+	return ifft;
+}
+
+
+/*
+int:DFT图像（双通道图像）
+out:幅度谱
+*/
+Mat CMycv::DFT_AmplitudeSpectrum(Mat dftimg)
+{
+	Mat planes[] = { Mat_<float>(dftimg), Mat::zeros(dftimg.size(), CV_32F) };
+
+	//Mat test=complexI.clone();
+	//idft(test, test);
+	//split(test, planes);
 	//magnitude(planes[0], planes[1], planes[0]);
-	imshow("test2", planes[0]);
+	//imshow("test2", planes[0]);
 
 
 	// compute the magnitude and switch to logarithmic scale
 	// => log(1 + sqrt(Re(DFT(I))^2 + Im(DFT(I))^2))
-	split(complexI, planes);                   // planes[0] = Re(DFT(I), planes[1] = Im(DFT(I))
+
+	//拆分到2个图像
+	split(dftimg, planes);                   // planes[0] = Re(DFT(I), planes[1] = Im(DFT(I))
 	magnitude(planes[0], planes[1], planes[0]);// planes[0] = magnitude  
 	Mat magI = planes[0];
-
-	
 
 	magI += Scalar::all(1);                    // switch to logarithmic scale
 	log(magI, magI);
@@ -447,10 +482,112 @@ Mat CMycv::DFT(Mat img)//来自opencv官网
 	// crop the spectrum, if it has an odd number of rows or columns
 	magI = magI(Rect(0, 0, magI.cols & -2, magI.rows & -2));
 
-	Mat _magI = magI.clone();
 	// rearrange the quadrants of Fourier image  so that the origin is at the image center        
-	int cx = magI.cols / 2;
-	int cy = magI.rows / 2;
+
+	normalize(magI, magI, 0, 1, CV_MINMAX); // Transform the matrix with float values into a 
+	// viewable image form (float between values 0 and 1).
+
+	//imshow("Input Image", img);    // Show the result
+	//imshow("spectrum magnitude", magI);
+
+	return magI;
+}
+
+/*
+int:DFT图像（双通道图像）
+out:相位谱
+*/
+Mat CMycv::DFT_PhaseSpectrum(Mat dftimg)
+{
+	Mat planes[] = { Mat_<float>(dftimg), Mat::zeros(dftimg.size(), CV_32F) };
+
+	//拆分到2个图像
+	split(dftimg, planes);                   // planes[0] = Re(DFT(I), planes[1] = Im(DFT(I))
+
+	int hi = dftimg.rows;
+	int wi = dftimg.cols;
+	for (int i = 0; i < hi; i++)
+	{
+		for (int j = 0; j < wi; j++)
+		{
+			planes[0].at<float>(i, j) = atan(planes[1].at<float>(i, j) / planes[0].at<float>(i, j));
+		}
+	}
+	Mat magI = planes[0];
+
+	magI += Scalar::all(1);                    // switch to logarithmic scale
+	log(magI, magI);
+
+	// crop the spectrum, if it has an odd number of rows or columns
+	magI = magI(Rect(0, 0, magI.cols & -2, magI.rows & -2));
+
+	// rearrange the quadrants of Fourier image  so that the origin is at the image center        
+
+	normalize(magI, magI, 0, 1, CV_MINMAX); // Transform the matrix with float values into a 
+	// viewable image form (float between values 0 and 1).
+
+	//imshow("Input Image", img);    // Show the result
+	//imshow("spectrum magnitude", magI);
+
+	return magI;
+}
+
+/*
+int:DFT图像（双通道图像）
+out:实部谱
+*/
+Mat CMycv::DFT_RealPart(Mat dftimg, bool _log)
+{
+	Mat planes[] = { Mat_<float>(dftimg), Mat::zeros(dftimg.size(), CV_32F) };
+
+	//拆分到2个图像
+	split(dftimg, planes);                   // planes[0] = Re(DFT(I), planes[1] = Im(DFT(I))
+
+	Mat magI = planes[0];
+	if(_log) log(magI, magI);
+	magI += Scalar::all(1);                    // switch to logarithmic scale
+
+	magI = magI(Rect(0, 0, magI.cols & -2, magI.rows & -2));
+     
+
+	normalize(magI, magI, 0, 1, CV_MINMAX); // Transform the matrix with float values into a 
+
+	return magI;
+}
+
+/*
+int:DFT图像（双通道图像）
+out:虚部谱
+*/
+Mat CMycv::DFT_ImaginaryPart(Mat dftimg, bool _log)
+{
+	Mat planes[] = { Mat_<float>(dftimg), Mat::zeros(dftimg.size(), CV_32F) };
+
+	//拆分到2个图像
+	split(dftimg, planes);                   // planes[0] = Re(DFT(I), planes[1] = Im(DFT(I))
+
+	Mat magI = planes[1];
+	if (_log) log(magI, magI);
+	magI += Scalar::all(1);                    // switch to logarithmic scale
+
+	magI = magI(Rect(0, 0, magI.cols & -2, magI.rows & -2));
+	normalize(magI, magI, 0, 1, CV_MINMAX);
+
+	return magI;
+}
+
+
+
+/*
+int:待旋转图像
+out:旋转后图像
+*/
+Mat CMycv::DFT_Rotate(Mat img)
+{
+	Mat _magI = img.clone();
+	// rearrange the quadrants of Fourier image  so that the origin is at the image center        
+	int cx = img.cols / 2;
+	int cy = img.rows / 2;
 
 	Mat q0(_magI, Rect(0, 0, cx, cy));   // Top-Left - Create a ROI per quadrant 
 	Mat q1(_magI, Rect(cx, 0, cx, cy));  // Top-Right
@@ -466,24 +603,5 @@ Mat CMycv::DFT(Mat img)//来自opencv官网
 	q2.copyTo(q1);
 	tmp.copyTo(q2);
 
-	normalize(_magI, _magI, 0, 1, CV_MINMAX); // Transform the matrix with float values into a 
-	// viewable image form (float between values 0 and 1).
-
-	//imshow("Input Image", img);    // Show the result
-	//imshow("spectrum magnitude", magI);
-
 	return _magI;
-}
-
-
-/*
-int:傅里叶谱
-out:单通道图片
-*/
-Mat CMycv::IDFT(Mat img)
-{
-	Mat ifft;
-	idft(img, ifft, DFT_REAL_OUTPUT);
-	normalize(ifft, ifft, 0, 1, CV_MINMAX);
-	return ifft;
 }

@@ -2,21 +2,23 @@
 #include "FilteringMask.h"
 
 
-CFilteringMask::CFilteringMask(int size, float x, int* mask)
+CFilteringMask::CFilteringMask(int s_w, int s_h, float x, int* mask)
 {
-	m_size = size;
+	m_size_w = s_w;
+	m_size_h = s_h;
 	m_x = x;
-	for (int i = 0; i < size*size; i++)
+	for (int i = 0; i < s_w*s_h; i++)
 	{
 		m_mask.push_back(mask[i]);
 		//cout << m_mask.at(i);
 	}
 }
-CFilteringMask::CFilteringMask(int size, float x, vector<int>* mask)
+CFilteringMask::CFilteringMask(int s_w, int s_h, float x, vector<int>* mask)
 {
-	m_size = size;
+	m_size_w = s_w;
+	m_size_h = s_h;
 	m_x = x;
-	for (int i = 0; i < size*size; i++)
+	for (int i = 0; i < s_w*s_h; i++)
 	{
 		m_mask.push_back(mask->at(i));
 	}
@@ -55,13 +57,14 @@ float CFilteringMask::processing(Mat* img, int posx, int posy)
 {
 	int wi = img->cols;
 	int hi = img->rows;
-	int c = (m_size - 1) / 2;
+	int c_w = (m_size_w - 1) / 2;
+	int c_h = (m_size_h - 1) / 2;
 	int ji = 1;
 	float s=0;//像素值总和
 	//卷积
-	for (int i = -c; i <= c; i++)
+	for (int i = -c_w; i <= c_w; i++)
 	{
-		for (int j = -c; j <= c; j++)
+		for (int j = -c_h; j <= c_h; j++)
 		{
 			int py = posy + i;
 			int px = posx + j;
@@ -69,7 +72,7 @@ float CFilteringMask::processing(Mat* img, int posx, int posy)
 			if (px < 0) px = 0;
 			if (py >= wi) py = wi-1;
 			if (px >= hi) px = hi-1;
-			s = s + img->at<uchar>(px, py)*m_mask.at(m_size*m_size-ji);
+			s = s + img->at<uchar>(px, py)*m_mask.at(m_size_w*m_size_h-ji);
 			ji++;
 		}
 	}

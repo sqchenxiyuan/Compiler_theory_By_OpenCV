@@ -15,6 +15,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	Mat img = imread("src/test1.jpg", -1);
 	Mat img2 = imread("src/MED.tif", -1);
 	Mat moon = imread("src/moon.tif", -1);
+	Mat dfttest = imread("src/DFTtest1.tif", -1);
 	
 	//获取直方图
 	//Mat hist = mcv.RGB_Histogram(&img, 256, 256);
@@ -25,7 +26,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	//imshow("直方图均衡化", equa);
 	
 	//RGB转单通道
-	Mat grayimg = mcv.RGB_Gray(&img, 1);
+	//Mat grayimg = mcv.RGB_Gray(&img, 1);
 	//imshow("rgb2gray", grayimg);
 
 	//单通道直方图
@@ -38,8 +39,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	
 
 	//线性模糊
-	//Mat FilterBlurLine1 = mcv.Filter_Blur_Line(&grayimg,3);
-	//Mat FilterBlurLine2 = mcv.Filter_Blur_Line(&grayimg,7);
+	//Mat FilterBlurLine1 = mcv.Filter_Blur_Line(&grayimg,3,3);
+	//Mat FilterBlurLine2 = mcv.Filter_Blur_Line(&grayimg,7,7);
 	//imshow("线性模糊3*3", FilterBlurLine1);
 	//imshow("线性模糊7*7", FilterBlurLine2);
 	
@@ -58,15 +59,22 @@ int _tmain(int argc, _TCHAR* argv[])
 	//imshow("拉布拉斯算子4", Laplasse4);
 
 	//DFT
-	Mat dft = mcv.DFT(moon);
-	imshow("dft", dft);
-	Mat idft = mcv.IDFT(dft);
+	Mat dft = mcv.DFT(dfttest);
+	Mat dft_amplitudespectrum = mcv.DFT_AmplitudeSpectrum(dft);
+	imshow("幅度谱", dft_amplitudespectrum);
+	Mat dft_phasespectrum=mcv.DFT_PhaseSpectrum(dft);
+	imshow("相位谱", dft_phasespectrum);
+	Mat dft_realpart = mcv.DFT_RealPart(dft,true);
+	imshow("实部谱", dft_realpart);
+	Mat dft_imaginarypart = mcv.DFT_ImaginaryPart(dft,false);
+	imshow("虚部谱", dft_imaginarypart);
+	Mat idft = mcv.IDFT(dft,dfttest.rows,dfttest.cols);
 	imshow("idft", idft);
 
 
 	//imshow("img", img);
 	//imshow("img2", img2);
-	imshow("moon", moon);
+	//imshow("moon", moon);
 	waitKey();
 	return 0;
 }
