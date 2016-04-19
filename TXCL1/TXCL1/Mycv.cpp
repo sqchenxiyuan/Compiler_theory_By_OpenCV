@@ -445,9 +445,43 @@ Mat CMycv::IDFT(Mat dftimg,int hi,int wi)
 	Mat ifft;
 	dftimg = DFT_Rotate(dftimg);
 	idft(dftimg, ifft, DFT_REAL_OUTPUT);
-	normalize(ifft, ifft, 0, 1, CV_MINMAX);
+
+
+	//float min = 255;
+	//float max = 0;
+
+	//float mx=0;
+	//float my=0;
+	//for (int i = 0; i <hi; i++)
+	//{
+	//	for (int j = 0; j < wi; j++)
+	//	{
+	//		ifft.at<float>(i, j) = ifft.at<float>(i, j) / hi / wi;
+	//		if (ifft.at<float>(i, j) < min){
+	//			min = ifft.at<float>(i, j);
+	//		}
+	//		if (ifft.at<float>(i, j) > max)max = ifft.at<float>(i, j);
+	//		if (ifft.at<float>(i, j) < 0)mx++;
+	//		if (ifft.at<float>(i, j) >0)my++;
+	//	}
+	//}
+	//cout << min <<"("<<mx<<","<<my<<")"<< "==" << max << endl;//单通道最灰度值
+
+	//for (int i = 0; i <hi; i++)
+	//{
+	//	for (int j = 0; j < wi; j++)
+	//	{
+	//		ifft.at<float>(i, j) = (ifft.at<float>(i, j)-min)/(max-min);
+	//	}
+	//}
+
+
+
+	//cout << ifft.at<float>(100, 100)<<endl;
+
+
+	normalize(ifft, ifft, 0,1,CV_MINMAX);
 	ifft = ifft(Rect(0, 0, wi, hi));
-	
 
 	return ifft;
 }
@@ -690,7 +724,76 @@ Mat CMycv::DFT_GLPF(int hi, int wi, float D0)
 	return  filter;
 }
 
+/*
+int:DFT图像（双通道图像）的宽高   D0
+out:滤波器
+*/
+Mat CMycv::DFT_IHPF(int hi, int wi, float D0)
+{
+	Mat filter(hi, wi, CV_32F, Scalar(0));
+	for (int i = 0; i < hi; i++)
+	{
+		for (int j = 0; j < wi; j++)
+		{
+			if (PointDistance(i, j, hi / 2, wi / 2) > D0) filter.at<float>(i, j) = 1;
+			else filter.at<float>(i, j) = 0;
+		}
+	}
+	return  filter;
+}
 
+/*
+int:DFT图像（双通道图像）的宽高   D0	n阶数
+out:滤波器
+*/
+Mat CMycv::DFT_BHPF(int hi, int wi, float D0, int n)
+{
+	Mat filter(hi, wi, CV_32F, Scalar(0));
+	for (int i = 0; i < hi; i++)
+	{
+		for (int j = 0; j < wi; j++)
+		{
+			filter.at<float>(i, j) = 1.0 / (1 + powf((D0 / PointDistance(i, j, hi / 2, wi / 2)), 2 * n));
+
+		}
+	}
+	return  filter;
+}
+/*
+int:DFT图像（双通道图像）的宽高   D0
+out:滤波器
+*/
+Mat CMycv::DFT_GHPF(int hi, int wi, float D0)
+{
+	Mat filter(hi, wi, CV_32F, Scalar(0));
+	for (int i = 0; i < hi; i++)
+	{
+		for (int j = 0; j < wi; j++)
+		{
+			float d = PointDistance(i, j, hi / 2, wi / 2);
+			filter.at<float>(i, j) = 1 - powf(C_E, -1 * (d / D0) / 2 * (d / D0));
+		}
+	}
+	return  filter;
+}
+
+/*
+int:DFT图像（双通道图像）的宽高  
+out:滤波器
+*/
+Mat CMycv::DFT_LAPLS(int hi, int wi)
+{
+	Mat filter(hi, wi, CV_32F, Scalar(0));
+	for (int i = 0; i < hi; i++)
+	{
+		for (int j = 0; j < wi; j++)
+		{
+			float d = PointDistance(i, j, hi / 2, wi / 2);
+			filter.at<float>(i, j) = -4*C_PI*C_PI*d*d ;
+		}
+	}
+	return  filter;
+}
 
 void CMycv::DFT_Filter_Show(Mat filter, char* name)
 {

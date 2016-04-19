@@ -1,5 +1,6 @@
 #pragma once
 #define	C_E 2.718281
+#define C_PI 3.141592
 
 class CMycv
 {
@@ -32,6 +33,10 @@ public:
 	Mat DFT_ILPF(int hi, int wi, float D0);//理想低通滤波器
 	Mat DFT_BLPF(int hi, int wi, float D0,int n);//布特沃斯低通滤波器
 	Mat DFT_GLPF(int hi, int wi, float D0);//高斯低通滤波器
+	Mat DFT_IHPF(int hi, int wi, float D0);//理想高通滤波器
+	Mat DFT_BHPF(int hi, int wi, float D0, int n);//布特沃斯高通滤波器
+	Mat DFT_GHPF(int hi, int wi, float D0);//高斯高通滤波器
+	Mat DFT_LAPLS(int hi, int wi);//拉不拉斯滤波器
 	void DFT_Filter_Show(Mat filter , char* name);//显示滤波器
 
 	//主要内部使用API
@@ -41,7 +46,7 @@ public:
 	Mat Histogram(Mat* img, int hi, int wi, float max);//单通道直方图
 	Mat Histogram_Equalization(Mat* img, float* l);//灰度图直方图均衡
 
-	//滤波用通用模板
+	//空间滤波用通用模板
 	int Filter_Median(Mat* img, int posx, int posy, int size);
 private:
 	void rect(Mat *img, Point sp, Point ep, int co);
