@@ -272,13 +272,20 @@ int* CMycv::Histogram_Group(Mat* img)
 	{
 		c[i] = 0;
 	}
-
+	int type = img->type();
 	int rs = img->rows, cs = img->cols;
 	for (i = 0; i < rs; i++)
 	{
 		for (j = 0; j < cs; j++)
 		{
-			c[img->at<uchar>(i, j)]++;
+			if (type == 0)
+			{
+				c[img->at<uchar>(i, j)]++;
+			}
+			else
+			{
+				c[int(img->at<float>(i, j)*255)]++;
+			}
 		}
 	}
 	return c;
@@ -480,7 +487,7 @@ Mat CMycv::IDFT(Mat dftimg,int hi,int wi)
 	//cout << ifft.at<float>(100, 100)<<endl;
 
 
-	normalize(ifft, ifft, 0,1,CV_MINMAX);
+	normalize(ifft, ifft,-1,1,CV_MINMAX);
 	ifft = ifft(Rect(0, 0, wi, hi));
 
 	return ifft;
@@ -507,7 +514,11 @@ Mat CMycv::DFT_AmplitudeSpectrum(Mat dftimg)
 
 	//²ð·Öµ½2¸öÍ¼Ïñ
 	split(dftimg, planes);                   // planes[0] = Re(DFT(I), planes[1] = Im(DFT(I))
+
+
 	magnitude(planes[0], planes[1], planes[0]);// planes[0] = magnitude  
+
+
 	Mat magI = planes[0];
 
 	magI += Scalar::all(1);                    // switch to logarithmic scale
@@ -653,6 +664,8 @@ Mat CMycv::DFT_Filter(Mat dftimg, Mat filter)
 	Mat planes[2];
 
 
+	//imshow("aaaaa", DFT_AmplitudeSpectrum(dftimg));
+
 	split(dftimg, planes);
 
 	for (int i = 0; i < hi; i++)
@@ -665,6 +678,9 @@ Mat CMycv::DFT_Filter(Mat dftimg, Mat filter)
 	}
 
 	merge(planes, 2, out);
+
+	//imshow("bbbbb", DFT_AmplitudeSpectrum(out));
+
 
 	return  out;
 }
