@@ -377,7 +377,7 @@ int CMycv::Filter_Median(Mat* img, int posx, int posy, int size)
 }
 
 /*
-int:单通道图片 算子大小(中心)1(9) 2(5) 3(-5) 4(-9)
+int:单通道图片 算子大小(中心)1(9) 2(5) 3(-4) 4(-8)
 out:滤波后的图
 */
 Mat CMycv::Filter_Laplasse_operator(Mat* img, int type)
@@ -398,12 +398,12 @@ Mat CMycv::Filter_Laplasse_operator(Mat* img, int type)
 		   CFilteringMask mask(3,3, 1.0, x);
 		   return mask.ALLProcess(img); }
 	case 3:{int x[] = { 0, 1, 0,
-					1, -5, 1,
+					1, -4, 1,
 					0, 1, 0 };
 		   CFilteringMask mask(3,3, -1.0, x);
 		   return mask.ALLProcess(img); }
 	case 4:{int x[] = { 1, 1, 1,
-					1, -9, 1,
+					1, -8, 1,
 					1, 1, 1 };
 		   CFilteringMask mask(3,3, -1.0,x);
 		   return mask.ALLProcess(img); }
@@ -446,7 +446,7 @@ Mat CMycv::DFT(Mat img)//来自opencv官网
 int:傅里叶谱(双通道图) 原图像： 宽 高
 out:单通道图片（反变换后的图片）
 */
-Mat CMycv::IDFT(Mat dftimg,int hi,int wi)
+Mat CMycv::IDFT(Mat dftimg, int hi, int wi,bool normal )
 {
 
 	Mat ifft;
@@ -487,7 +487,10 @@ Mat CMycv::IDFT(Mat dftimg,int hi,int wi)
 	//cout << ifft.at<float>(100, 100)<<endl;
 
 
-	normalize(ifft, ifft,-1,1,CV_MINMAX);
+	if (normal)
+	{
+		normalize(ifft, ifft, -1, 1, CV_MINMAX);
+	}
 	ifft = ifft(Rect(0, 0, wi, hi));
 
 	return ifft;
@@ -826,4 +829,36 @@ float CMycv::PointDistance(float p1x, float p1y, float p2x, float p2y)
 	float x = p1x - p2x;
 	float y = p1y - p2y;
 	return sqrt(x*x + y*y);
+}
+
+/*
+int:需要处理的图像
+out:拉不拉斯滤波处理后的图像
+*/
+Mat CMycv::DFT_LAPLS(Mat img)
+{
+	Mat dft = DFT(img);
+	Mat filt = DFT_LAPLS(dft.rows, dft.cols);
+	
+	//DFT_Filter_Show(filt, "filt");
+	//imshow(" 频率域拉不拉斯滤波器DFT", DFT_AmplitudeSpectrum(DFT(filt)))
+
+	Mat filt_idft = DFT_Filter(dft, filt);
+	Mat idft = IDFT(filt_idft, img.rows, img.cols);
+
+	int hi = img.rows;
+	int wi = img.cols;
+	Mat out(hi, wi, CV_8U, Scalar(0));
+	for (int i = 0; i < hi; i++)
+	{
+		for (int j = 0; j < wi; j++)
+		{
+			int x = img.at<uchar>(i, j) - idft.at<float>(i, j) * 255 ;
+			if (x < 0) x = 0;
+			if (x > 255) x = 255;
+			out.at<uchar>(i, j) = x;
+		}
+	}
+
+	return out;
 }

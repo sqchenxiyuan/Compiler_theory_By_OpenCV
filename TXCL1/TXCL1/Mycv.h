@@ -22,13 +22,17 @@ public:
 	Mat Filter_Median(Mat* img, int size);//中值滤波
 	Mat Filter_Laplasse_operator(Mat* img, int type);//拉布拉斯算子
 	Mat DFT(Mat img);//离散傅里叶变换  返回一个双通道图像（旋转后）
-	Mat IDFT(Mat dftimg, int hi, int wi);//离散傅里叶反变换
+	Mat IDFT(Mat dftimg, int hi, int wi, bool normal=true);//离散傅里叶反变换
 
 	Mat DFT_AmplitudeSpectrum(Mat dftimg);//幅度谱
 	Mat DFT_PhaseSpectrum(Mat dftimg);//相位谱
 	Mat DFT_RealPart(Mat dftimg,bool _log);//实部图
 	Mat DFT_ImaginaryPart(Mat dftimg, bool log);//虚部图
 
+	//封装好的空间滤波函数
+	Mat DFT_LAPLS(Mat img);//拉普拉斯滤波
+
+	//频率域滤波器
 	Mat DFT_Filter(Mat dftimg, Mat filter);//滤波器与DFT作用
 	Mat DFT_ILPF(int hi, int wi, float D0);//理想低通滤波器
 	Mat DFT_BLPF(int hi, int wi, float D0,int n);//布特沃斯低通滤波器
@@ -37,7 +41,6 @@ public:
 	Mat DFT_BHPF(int hi, int wi, float D0, int n);//布特沃斯高通滤波器
 	Mat DFT_GHPF(int hi, int wi, float D0);//高斯高通滤波器
 	Mat DFT_LAPLS(int hi, int wi);//拉不拉斯滤波器
-	void DFT_Filter_Show(Mat filter , char* name);//显示滤波器
 
 	//主要内部使用API
 	int* Histogram_Group(Mat* img);//直方图数组
@@ -45,6 +48,8 @@ public:
 	int GreyValue(Mat* img, bool maxormin);//单通道最灰度值
 	Mat Histogram(Mat* img, int hi, int wi, float max);//单通道直方图
 	Mat Histogram_Equalization(Mat* img, float* l);//灰度图直方图均衡
+
+	void DFT_Filter_Show(Mat filter, char* name);//显示滤波器
 
 	//空间滤波用通用模板
 	int Filter_Median(Mat* img, int posx, int posy, int size);

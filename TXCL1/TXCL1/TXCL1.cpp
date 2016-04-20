@@ -48,14 +48,14 @@ int _tmain(int argc, _TCHAR* argv[])
 	//imshow("中值滤波", FilterMedian);
 
 	//拉布拉斯算子
-	//Mat Laplasse1 = mcv.Filter_Laplasse_operator(&moon, 1);
-	//Mat Laplasse2 = mcv.Filter_Laplasse_operator(&moon, 2);
-	//Mat Laplasse3 = mcv.Filter_Laplasse_operator(&moon, 3);
-	//Mat Laplasse4 = mcv.Filter_Laplasse_operator(&moon, 4);
-	//imshow("拉布拉斯算子1", Laplasse1);
-	//imshow("拉布拉斯算子2", Laplasse2);
-	//imshow("拉布拉斯算子3", Laplasse3);
-	//imshow("拉布拉斯算子4", Laplasse4);
+	Mat Laplasse1 = mcv.Filter_Laplasse_operator(&moon, 1);
+	Mat Laplasse2 = mcv.Filter_Laplasse_operator(&moon, 2);
+	Mat Laplasse3 = mcv.Filter_Laplasse_operator(&moon, 3);
+	Mat Laplasse4 = mcv.Filter_Laplasse_operator(&moon, 4);
+	imshow("拉布拉斯算子1-完全", Laplasse1);
+	imshow("拉布拉斯算子2-完全", Laplasse2);
+	imshow("拉布拉斯算子3-轮廓", Laplasse3);
+	imshow("拉布拉斯算子4-轮廓", Laplasse4);
 
 	//DFT
 	/*Mat dfttest = imread("src/DFT_IDFT测试用例-3.tif", -1);
@@ -187,7 +187,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 
 	////////////////////    高斯高通滤波    ////////////////////
-	Mat ilpftest = imread("src/滤波测试用例.tif", -1);
+	/*Mat ilpftest = imread("src/滤波测试用例.tif", -1);
 	Mat dft_ilpf = mcv.DFT(ilpftest);
 	Mat filt_30 = mcv.DFT_GHPF(dft_ilpf.rows, dft_ilpf.cols, 30); mcv.DFT_Filter_Show(filt_30, "filt_30");
 	Mat filt_60 = mcv.DFT_GHPF(dft_ilpf.rows, dft_ilpf.cols, 60); mcv.DFT_Filter_Show(filt_60, "filt_60");
@@ -201,18 +201,13 @@ int _tmain(int argc, _TCHAR* argv[])
 	imshow("高斯高通滤波器 d=30", idft_ilpf_30);
 	imshow("高斯高通滤波器 d=60", idft_ilpf_60);
 	imshow("高斯高通滤波器 d=160", idft_ilpf_160);
-	imshow("高斯高通滤波测试用例", ilpftest);
+	imshow("高斯高通滤波测试用例", ilpftest);*/
 	
 
 	////////////////////    频率域拉普拉斯滤波    ////////////////////
-	//Mat ilpftest = imread("src/moon.tif", -1);
-	//Mat dft_lapls = mcv.DFT(ilpftest);
-	//Mat filt = mcv.DFT_LAPLS(dft_lapls.rows, dft_lapls.cols); 
-	//	mcv.DFT_Filter_Show(filt, "filt");
-	//Mat filt_idft = mcv.IDFT(filt);
-	//Mat idft_lapls = mcv.DFT_Filter(dft_lapls, filt);
-	////imshow(" 频率域拉不拉斯滤波", idft_lapls);
-	//imshow(" 频率域拉不拉斯滤波例子", ilpftest);
+	Mat lapltest = imread("src/moon.tif", -1);
+	Mat lapl = mcv.DFT_LAPLS(lapltest);
+	imshow("频率域拉普拉斯", lapl);
 
 
 	waitKey();
