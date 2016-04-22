@@ -21,8 +21,10 @@ public:
 	Mat Filter_Blur_Line(Mat* img, int size_w, int size_h);//线性滤波模糊
 	Mat Filter_Median(Mat* img, int size);//中值滤波
 	Mat Filter_Laplasse_operator(Mat* img, int type);//拉布拉斯算子
+
+	//////频率域
 	Mat DFT(Mat img);//离散傅里叶变换  返回一个双通道图像（旋转后）
-	Mat IDFT(Mat dftimg, int hi, int wi, bool normal=true);//离散傅里叶反变换
+	Mat IDFT(Mat dftimg, int hi, int wi, float min=-1,float max=1);//离散傅里叶反变换
 
 	Mat DFT_AmplitudeSpectrum(Mat dftimg);//幅度谱
 	Mat DFT_PhaseSpectrum(Mat dftimg);//相位谱
@@ -31,6 +33,12 @@ public:
 
 	//封装好的空间滤波函数
 	Mat DFT_LAPLS(Mat img);//拉普拉斯滤波
+	Mat DFT_ILPF(Mat img, float D0);//理想低通滤波
+	Mat DFT_BLPF(Mat img, float D0, int n);//布特沃斯低通滤波
+	Mat DFT_GLPF(Mat img, float D0);//高斯低通滤波器
+	Mat DFT_IHPF(Mat img, float D0);//理想高通滤波器
+	Mat DFT_BHPF(Mat img, float D0, int n);//布特沃斯高通滤波器
+	Mat DFT_GHPF(Mat img, float D0);//高斯高通滤波器
 
 	//频率域滤波器
 	Mat DFT_Filter(Mat dftimg, Mat filter);//滤波器与DFT作用

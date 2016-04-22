@@ -446,7 +446,7 @@ Mat CMycv::DFT(Mat img)//来自opencv官网
 int:傅里叶谱(双通道图) 原图像： 宽 高
 out:单通道图片（反变换后的图片）
 */
-Mat CMycv::IDFT(Mat dftimg, int hi, int wi,bool normal )
+Mat CMycv::IDFT(Mat dftimg, int hi, int wi, float min , float max )
 {
 
 	Mat ifft;
@@ -487,10 +487,7 @@ Mat CMycv::IDFT(Mat dftimg, int hi, int wi,bool normal )
 	//cout << ifft.at<float>(100, 100)<<endl;
 
 
-	if (normal)
-	{
-		normalize(ifft, ifft, -1, 1, CV_MINMAX);
-	}
+	normalize(ifft, ifft, min, max, CV_MINMAX);
 	ifft = ifft(Rect(0, 0, wi, hi));
 
 	return ifft;
@@ -861,4 +858,88 @@ Mat CMycv::DFT_LAPLS(Mat img)
 	}
 
 	return out;
+}
+
+/*
+int:需要处理的图像  理想低通滤波D0
+out:理想低通滤波处理后的图像
+*/
+Mat CMycv::DFT_ILPF(Mat img, float D0)
+{
+	Mat dft = DFT(img);
+	Mat filt = DFT_ILPF(dft.rows, dft.cols, D0);
+	Mat dft_ilpf = DFT_Filter(dft, filt);
+	Mat idft = IDFT(dft_ilpf, img.rows, img.cols,0);
+
+	return idft;
+}
+
+/*
+int:需要处理的图像  布特沃斯低通滤波D0  阶数n
+out:布特沃斯低通滤波处理后的图像
+*/
+Mat CMycv::DFT_BLPF(Mat img, float D0, int n)
+{
+	Mat dft = DFT(img);
+	Mat filt = DFT_BLPF(dft.rows, dft.cols, D0,n);
+	Mat dft_ilpf = DFT_Filter(dft, filt);
+	Mat idft = IDFT(dft_ilpf, img.rows, img.cols,0);
+
+	return idft;
+}
+
+/*
+int:需要处理的图像  高斯低通滤波器D0 
+out:高斯低通滤波器处理后的图像
+*/
+Mat CMycv::DFT_GLPF(Mat img, float D0)
+{
+	Mat dft = DFT(img);
+	Mat filt = DFT_GLPF(dft.rows, dft.cols, D0);
+	Mat dft_ilpf = DFT_Filter(dft, filt);
+	Mat idft = IDFT(dft_ilpf, img.rows, img.cols,0);
+
+	return idft;
+}
+
+/*
+int:需要处理的图像  理想高通滤波D0 
+out:理想高通滤波处理后的图像
+*/
+Mat CMycv::DFT_IHPF(Mat img, float D0)
+{
+	Mat dft = DFT(img);
+	Mat filt = DFT_IHPF(dft.rows, dft.cols, D0);
+	Mat dft_ilpf = DFT_Filter(dft, filt);
+	Mat idft = IDFT(dft_ilpf, img.rows, img.cols);
+
+	return idft;
+}
+
+/*
+int:需要处理的图像  布特沃斯高通滤波D0  阶数n
+out:布特沃斯高通滤波处理后的图像
+*/
+Mat CMycv::DFT_BHPF(Mat img, float D0, int n)
+{
+	Mat dft = DFT(img);
+	Mat filt = DFT_BHPF(dft.rows, dft.cols, D0,n);
+	Mat dft_ilpf = DFT_Filter(dft, filt);
+	Mat idft = IDFT(dft_ilpf, img.rows, img.cols);
+
+	return idft;
+}
+
+/*
+int:需要处理的图像  高斯高通滤波D0 
+out:高斯高通滤波处理后的图像
+*/
+Mat CMycv::DFT_GHPF(Mat img, float D0)
+{
+	Mat dft = DFT(img);
+	Mat filt = DFT_GHPF(dft.rows, dft.cols, D0);
+	Mat dft_ilpf = DFT_Filter(dft, filt);
+	Mat idft = IDFT(dft_ilpf, img.rows, img.cols);
+
+	return idft;
 }
