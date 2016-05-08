@@ -150,7 +150,17 @@ Mat CMycv::Histogram_Equalization(Mat* img, float* l)
 	{
 		for (j = 0; j < wi; j++)
 		{
-			newimg.at<uchar>(i, j) = l[img->at<uchar>(i,j)] * 255;
+			if (img->type() == 0)
+			{
+				newimg.at<uchar>(i, j) = l[img->at<uchar>(i, j)] * 255;
+			}
+			else
+			{
+				int x = int(img->at<float>(i, j) * 255);
+				if (x>255) x = 255;
+				if (x<0) x = 0;
+				newimg.at<uchar>(i, j) = l[x] * 255;
+			}
 		}
 	}
 	return newimg;
@@ -284,7 +294,10 @@ int* CMycv::Histogram_Group(Mat* img)
 			}
 			else
 			{
-				c[int(img->at<float>(i, j)*255)]++;
+				int x = int(img->at<float>(i, j) * 255);
+				if (x>255) x = 255;
+				if (x<0) x = 0;
+				c[x]++;
 			}
 		}
 	}
@@ -498,7 +511,7 @@ Mat CMycv::IDFT(Mat dftimg, int hi, int wi, float min , float max )
 int:DFT图像（双通道图像）
 out:幅度谱
 */
-Mat CMycv::DFT_AmplitudeSpectrum(Mat dftimg)
+Mat CMycv::DFT_AmplitudeSpectrum(Mat dftimg,bool _log)
 {
 	Mat planes[] = { Mat_<float>(dftimg), Mat::zeros(dftimg.size(), CV_32F) };
 
@@ -522,7 +535,7 @@ Mat CMycv::DFT_AmplitudeSpectrum(Mat dftimg)
 	Mat magI = planes[0];
 
 	magI += Scalar::all(1);                    // switch to logarithmic scale
-	log(magI, magI);
+	if(_log)log(magI, magI);
 
 	// crop the spectrum, if it has an odd number of rows or columns
 	magI = magI(Rect(0, 0, magI.cols & -2, magI.rows & -2));
@@ -542,7 +555,7 @@ Mat CMycv::DFT_AmplitudeSpectrum(Mat dftimg)
 int:DFT图像（双通道图像）
 out:相位谱
 */
-Mat CMycv::DFT_PhaseSpectrum(Mat dftimg)
+Mat CMycv::DFT_PhaseSpectrum(Mat dftimg,bool _log)
 {
 	Mat planes[] = { Mat_<float>(dftimg), Mat::zeros(dftimg.size(), CV_32F) };
 
@@ -561,7 +574,7 @@ Mat CMycv::DFT_PhaseSpectrum(Mat dftimg)
 	Mat magI = planes[0];
 
 	magI += Scalar::all(1);                    // switch to logarithmic scale
-	log(magI, magI);
+	if (_log)log(magI, magI);
 
 	// crop the spectrum, if it has an odd number of rows or columns
 	magI = magI(Rect(0, 0, magI.cols & -2, magI.rows & -2));
@@ -674,6 +687,119 @@ Mat CMycv::DFT_Filter(Mat dftimg, Mat filter)
 		{
 			planes[0].at<float>(i, j) = planes[0].at<float>(i, j)* filter.at<float>(i, j);
 			planes[1].at<float>(i, j) = planes[1].at<float>(i, j)* filter.at<float>(i, j);
+		}
+	}
+
+	merge(planes, 2, out);
+
+	//imshow("bbbbb", DFT_AmplitudeSpectrum(out));
+
+
+	return  out;
+}
+
+
+/*
+int:DFT图像（双通道图像） 滤波器实部图像  滤波器虚部图像
+out:过滤后图像
+*/
+Mat CMycv::DFT_Filter(Mat dftimg, Mat filter_Real, Mat filter_Imaginary)
+{
+	int hi = dftimg.rows;
+	int wi = dftimg.cols;
+
+	Mat out;
+	Mat planes[2];
+
+
+	//imshow("aaaaa", DFT_AmplitudeSpectrum(dftimg));
+
+	split(dftimg, planes);
+
+	for (int i = 0; i < hi; i++)
+	{
+		for (int j = 0; j < wi; j++)
+		{
+			float a = planes[0].at<float>(i, j);
+			float b = planes[1].at<float>(i, j);
+			float c = filter_Real.at<float>(i, j);
+			float d = filter_Imaginary.at<float>(i, j);
+
+
+			planes[0].at<float>(i, j) = a*c - b*d;
+			planes[1].at<float>(i, j) = a*d + b*c;
+		}
+	}
+
+	merge(planes, 2, out);
+
+	//imshow("bbbbb", DFT_AmplitudeSpectrum(out));
+
+
+	return  out;
+}
+
+
+Mat CMycv::DFT_Filter_Inverse(Mat dftimg, Mat filter)
+{
+	int hi = dftimg.rows;
+	int wi = dftimg.cols;
+
+	Mat out;
+	Mat planes[2];
+
+
+	//imshow("aaaaa", DFT_AmplitudeSpectrum(dftimg));
+
+	split(dftimg, planes);
+
+	for (int i = 0; i < hi; i++)
+	{
+		for (int j = 0; j < wi; j++)
+		{
+			if (filter.at<float>(i, j)>0.0000001 || filter.at<float>(i, j)<-0.0000001)
+			{
+				planes[0].at<float>(i, j) = planes[0].at<float>(i, j) / filter.at<float>(i, j);
+				planes[1].at<float>(i, j) = planes[1].at<float>(i, j) / filter.at<float>(i, j);
+			}
+			//cout << planes[0].at<float>(i, j) << "==" << planes[1].at<float>(i, j) << endl;
+		}
+	}
+
+	merge(planes, 2, out);
+
+	//imshow("bbbbb", DFT_AmplitudeSpectrum(out));
+
+
+	return  out;
+}
+
+
+Mat CMycv::DFT_Filter_Inverse(Mat dftimg, Mat filter_Real, Mat filter_Imaginary)
+{
+	int hi = dftimg.rows;
+	int wi = dftimg.cols;
+
+	Mat out;
+	Mat planes[2];
+
+
+	//imshow("aaaaa", DFT_AmplitudeSpectrum(dftimg));
+
+	split(dftimg, planes);
+
+	for (int i = 0; i < hi; i++)
+	{
+		for (int j = 0; j < wi; j++)
+		{
+			float a = planes[0].at<float>(i, j);
+			float b = planes[1].at<float>(i, j);
+			float c = filter_Real.at<float>(i, j);
+			float d = filter_Imaginary.at<float>(i, j);
+			float m = c*c + d*d;
+
+			planes[0].at<float>(i, j) = (a*c + b*d)/m;
+			planes[1].at<float>(i, j) = (b*c-a*d)/m;
 		}
 	}
 
@@ -942,4 +1068,118 @@ Mat CMycv::DFT_GHPF(Mat img, float D0)
 	Mat idft = IDFT(dft_ilpf, img.rows, img.cols);
 
 	return idft;
+}
+
+
+Mat CMycv::Matuchar2float(Mat img)
+{
+	int hi = img.rows;
+	int wi = img.cols;
+	Mat out(hi,wi, CV_32F);
+
+	for (int i = 0; i < hi; i++)
+	{
+		for (int j = 0; j < wi; j++)
+		{
+			out.at<float>(i, j) = img.at<uchar>(i,j) / 255.0;
+		}
+	}
+	return out;
+}
+
+
+Mat CMycv::SChangeImgSize(Mat img, float hi, float wi)
+{
+
+	Mat out(hi, wi, CV_8U, Scalar(0));
+	for (int i = 0; i < hi; i++)
+	{
+		for (int j = 0; j < wi; j++)
+		{
+			out.at<uchar>(i, j) = img.at<uchar>(i*img.rows/hi,j*img.cols/wi);
+		}
+	}
+	return out;
+}
+
+
+Mat CMycv::DFT_Inverse_Wiener(Mat dftimg, Mat filter_dft, float k)
+{
+	int hi = dftimg.rows;
+	int wi = dftimg.cols;
+
+	Mat out;
+	Mat planes[2];
+	Mat filter[2];
+	split(filter_dft, filter);//处理滤波的频率域域与实部虚部
+	Mat filter_Real = filter[0];
+	Mat	filter_Imaginary = filter[1];
+
+	split(dftimg, planes);
+
+	for (int i = 0; i < hi; i++)
+	{
+		for (int j = 0; j < wi; j++)
+		{
+			float a = planes[0].at<float>(i, j);
+			float b = planes[1].at<float>(i, j);
+			float c = filter_Real.at<float>(i, j);
+			float d = filter_Imaginary.at<float>(i, j);
+			float m = c*c + d*d;
+
+			planes[0].at<float>(i, j) = (a*c + b*d) / (m+k);
+			planes[1].at<float>(i, j) = (b*c - a*d) / (m+k);
+		}
+	}
+
+	merge(planes, 2, out);
+
+	//imshow("bbbbb", DFT_AmplitudeSpectrum(out));
+
+
+	return  out;
+}
+
+
+Mat CMycv::DFT_Inverse_Constrained_Least_Squares_Filtering(Mat dftimg, Mat filter_dft, float l)
+{
+	Mat P = DFT_LAPLS(dftimg.rows, dftimg.cols);
+
+	int hi = dftimg.rows;
+	int wi = dftimg.cols;
+
+	Mat out;
+	Mat planes[2];
+	Mat filter[2];
+	split(filter_dft, filter);//处理滤波的频率域域与实部虚部
+	Mat filter_Real = filter[0];
+	Mat	filter_Imaginary = filter[1];
+
+	split(dftimg, planes);
+
+	for (int i = 0; i < hi; i++)
+	{
+		for (int j = 0; j < wi; j++)
+		{
+			float a = planes[0].at<float>(i, j);
+			float b = planes[1].at<float>(i, j);
+			float c = filter_Real.at<float>(i, j);
+			float d = filter_Imaginary.at<float>(i, j);
+			float m = c*c + d*d;
+
+			float p2 = P.at<float>(i, j)*P.at<float>(i, j);
+			p2 = p2*l;
+			float m_p = m + p2;
+
+			planes[0].at<float>(i, j) = (a*c + b*d) /m_p;
+			planes[1].at<float>(i, j) = (b*c - a*d) /m_p;
+		}
+	}
+
+	merge(planes, 2, out);
+
+	//imshow("bbbbb", DFT_AmplitudeSpectrum(out));
+
+
+	return  out;
 }

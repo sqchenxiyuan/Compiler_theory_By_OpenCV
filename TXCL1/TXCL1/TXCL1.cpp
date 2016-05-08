@@ -3,12 +3,6 @@
 
 #include "stdafx.h"
 
-
-void draw_zft(int r[], int g[], int b[], char* text);
-void draw_zxt(float lp[], Scalar cs);
-void rect(Mat *img, Point sp, Point ep, Scalar co);
-void line(Mat *img, Point sp, Point ep, Scalar co);
-
 int _tmain(int argc, _TCHAR* argv[])
 {
 	CMycv mcv;
@@ -130,11 +124,88 @@ int _tmain(int argc, _TCHAR* argv[])
 	
 
 	////////////////////    频率域拉普拉斯滤波    ////////////////////
-	/*Mat lapltest_p = imread("src/moon.tif", -1);
+	/*Mat lapltest_p = imread("src/拉普拉斯测试用例.tif", -1);
 	Mat lapl = mcv.DFT_LAPLS(lapltest_p);
 	imshow("频率域拉普拉斯", lapl);
 	imshow("拉普拉斯测试用例", lapltest_p);*/
 
+	/////////////////////////////    逆滤波    /////////////////////////////
+
+	Mat motest = mcv.RGB_Gray(& imread("src/test1.jpg",-1),1);
+	int x[] = {1,1,1,1,1,1,1,
+		1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 
+		1, 1, 1, 1, 1, 1, 1, };//测试用滤波
+	CFilteringMask mask(7, 7, 1.0 / 49, x);
+	Mat moimg = mask.ALLProcess(&motest);
+	moimg = mcv.Matuchar2float(moimg);//空间域模糊后图像
+	//空间域转频率域
+	Mat flt(7, 7, CV_8U, Scalar(1.0 / 49 * 255));
+	/*flt.at<uchar>(0, 2) = 1.0 / 19 * 255;
+	flt.at<uchar>(1, 2) = 1.0 / 19 * 255;
+	flt.at<uchar>(2, 0) = 5.0 / 19 * 255;
+	flt.at<uchar>(2, 1) = 4.0 / 19 * 255;
+	flt.at<uchar>(2, 2) = 3.0 / 19 * 255;
+	flt.at<uchar>(2, 3) = 2.0 / 19 * 255;
+	flt.at<uchar>(2, 4) = 1.0 / 19 * 255;
+	flt.at<uchar>(3, 2) = 1.0 / 19 * 255;
+	flt.at<uchar>(4, 2) = 1.0 / 19 * 255;*/
+
+	Mat bflt;
+	copyMakeBorder(flt, bflt, 0, motest.rows - flt.rows, 0, motest.cols - flt.cols, BORDER_CONSTANT, Scalar::all(0));
+	Mat fltdft = mcv.DFT(bflt);
+	Mat modft = mcv.DFT(moimg);
+
+	Mat planes[2];
+	split(fltdft, planes);
+
+
+	imshow("原图像", motest);
+	imshow("模糊后图像", moimg);
+
+
+	/////////////////////////////展示用
+	Mat mo_Wiener_100 = mcv.DFT_Inverse_Wiener(modft, fltdft, 100);
+	imshow("原图直方图", mcv.Histogram(&motest, 256, 1024));
+	imshow("直方图用于矫正颜色", mcv.Histogram(&mcv.IDFT(mo_Wiener_100, motest.rows, motest.cols, -1.6, 2.4), 256, 1024));
+	imshow("校正后逆滤波成果", mcv.IDFT(mo_Wiener_100, motest.rows, motest.cols, -1.6, 2.4));
+
+	////////////////////    维纳滤波    ////////////////////
+	//Mat mo_Wiener_0 = mcv.DFT_Inverse_Wiener(modft, fltdft, 0);
+	//Mat mo_Wiener_1 = mcv.DFT_Inverse_Wiener(modft, fltdft, 1);
+	//Mat mo_Wiener_10 = mcv.DFT_Inverse_Wiener(modft, fltdft, 10);
+	//Mat mo_Wiener_100 = mcv.DFT_Inverse_Wiener(modft, fltdft, 100);
+	//Mat mo_Wiener_1000 = mcv.DFT_Inverse_Wiener(modft, fltdft, 1000);
+	//Mat mo_Wiener_10000 = mcv.DFT_Inverse_Wiener(modft, fltdft, 10000);
+	//Mat mo_Wiener_50000 = mcv.DFT_Inverse_Wiener(modft, fltdft, 50000);
+	//Mat mo_Wiener_100000 = mcv.DFT_Inverse_Wiener(modft, fltdft, 100000);
+	
+
+
+	//imshow("维纳滤波 k=0", mcv.IDFT(mo_Wiener_0, motest.rows, motest.cols, 0));
+	//imshow("维纳滤波 k=1", mcv.IDFT(mo_Wiener_1, motest.rows, motest.cols, 0));
+	//imshow("维纳滤波 k=10", mcv.IDFT(mo_Wiener_10, motest.rows, motest.cols, 0));
+	//imshow("维纳滤波 k=100",  mcv.IDFT(mo_Wiener_100, motest.rows, motest.cols,0));
+	//imshow("维纳滤波 k=1000", mcv.IDFT(mo_Wiener_1000, motest.rows, motest.cols, 0));
+	//imshow("维纳滤波 k=100000", mcv.IDFT(mo_Wiener_10000, motest.rows, motest.cols,0));
+	//imshow("维纳滤波 k=500000", mcv.IDFT(mo_Wiener_50000, motest.rows, motest.cols,0));
+	//imshow("维纳滤波 k=1000000", mcv.IDFT(mo_Wiener_100000, motest.rows, motest.cols,0));
+
+	////////////////////    约束最小二乘方滤波   ////////////////////
+	///*Mat mo_ICLSF_0 = mcv.DFT_Inverse_Constrained_Least_Squares_Filtering(modft, fltdft, 0);
+	//Mat mo_ICLSF_01 = mcv.DFT_Inverse_Constrained_Least_Squares_Filtering(modft, fltdft, 0.1);
+	//Mat mo_ICLSF_00001 = mcv.DFT_Inverse_Constrained_Least_Squares_Filtering(modft, fltdft, 0.0001);
+	//Mat mo_ICLSF_0000001 = mcv.DFT_Inverse_Constrained_Least_Squares_Filtering(modft, fltdft, 0.000001);
+	//Mat mo_ICLSF_0000000001 = mcv.DFT_Inverse_Constrained_Least_Squares_Filtering(modft, fltdft, 0.000000001);
+
+	//imshow("约束最小二乘方滤波 l=0.0", mcv.IDFT(mo_ICLSF_0, motest.rows, motest.cols, 0));
+	//imshow("约束最小二乘方滤波 l=0.1", mcv.IDFT(mo_ICLSF_01, motest.rows, motest.cols, 0));
+	//imshow("约束最小二乘方滤波 l=0.0001", mcv.IDFT(mo_ICLSF_00001, motest.rows, motest.cols, 0));
+	//imshow("约束最小二乘方滤波 l=0.000001", mcv.IDFT(mo_ICLSF_0000001, motest.rows, motest.cols, 0));
+	//imshow("约束最小二乘方滤波 l=0.000000001", mcv.IDFT(mo_ICLSF_0000000001, motest.rows, motest.cols, 0));*/
 
 	waitKey();
 	return 0;

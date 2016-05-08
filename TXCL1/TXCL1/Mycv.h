@@ -26,10 +26,10 @@ public:
 	Mat DFT(Mat img);//离散傅里叶变换  返回一个双通道图像（旋转后）
 	Mat IDFT(Mat dftimg, int hi, int wi, float min=-1,float max=1);//离散傅里叶反变换
 
-	Mat DFT_AmplitudeSpectrum(Mat dftimg);//幅度谱
-	Mat DFT_PhaseSpectrum(Mat dftimg);//相位谱
-	Mat DFT_RealPart(Mat dftimg,bool _log);//实部图
-	Mat DFT_ImaginaryPart(Mat dftimg, bool log);//虚部图
+	Mat DFT_AmplitudeSpectrum(Mat dftimg, bool _log=true);//幅度谱
+	Mat DFT_PhaseSpectrum(Mat dftimg, bool _log = true);//相位谱
+	Mat DFT_RealPart(Mat dftimg, bool _log = true);//实部图
+	Mat DFT_ImaginaryPart(Mat dftimg, bool _log = true);//虚部图
 
 	//封装好的空间滤波函数
 	Mat DFT_LAPLS(Mat img);//拉普拉斯滤波
@@ -42,6 +42,7 @@ public:
 
 	//频率域滤波器
 	Mat DFT_Filter(Mat dftimg, Mat filter);//滤波器与DFT作用
+	Mat DFT_Filter(Mat dftimg, Mat filter_Real, Mat filter_Imaginary);//滤波器与DFT作用
 	Mat DFT_ILPF(int hi, int wi, float D0);//理想低通滤波器
 	Mat DFT_BLPF(int hi, int wi, float D0,int n);//布特沃斯低通滤波器
 	Mat DFT_GLPF(int hi, int wi, float D0);//高斯低通滤波器
@@ -49,6 +50,12 @@ public:
 	Mat DFT_BHPF(int hi, int wi, float D0, int n);//布特沃斯高通滤波器
 	Mat DFT_GHPF(int hi, int wi, float D0);//高斯高通滤波器
 	Mat DFT_LAPLS(int hi, int wi);//拉不拉斯滤波器
+
+	//逆录滤波器
+	Mat DFT_Filter_Inverse(Mat dftimg, Mat filter);//滤波器与DFT逆滤波
+	Mat DFT_Filter_Inverse(Mat dftimg, Mat filter_Real, Mat filter_Imaginary);//滤波器与DFT逆滤波
+	Mat DFT_Inverse_Wiener(Mat dftimg, Mat filter_dft, float k);//维纳滤波
+	Mat DFT_Inverse_Constrained_Least_Squares_Filtering(Mat dftimg, Mat filter_dft, float l);//约束最小二乘方滤波
 
 	//主要内部使用API
 	int* Histogram_Group(Mat* img);//直方图数组
@@ -61,9 +68,11 @@ public:
 
 	//空间滤波用通用模板
 	int Filter_Median(Mat* img, int posx, int posy, int size);
+	Mat Matuchar2float(Mat img);//将Mat默认的UCHAR转换为float便于空间域处理
 private:
 	void rect(Mat *img, Point sp, Point ep, int co);
 	float PointDistance(float p1x, float p1y, float p2x, float p2y);
+	Mat SChangeImgSize(Mat img, float hi, float wi);//简单的放大缩小
 
 
 	Mat DFT_Rotate(Mat img);//选在DFT图像
