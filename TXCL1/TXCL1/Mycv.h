@@ -22,6 +22,8 @@ public:
 	Mat Filter_Median(Mat* img, int size);//中值滤波
 	Mat Filter_Laplasse_operator(Mat* img, int type);//拉布拉斯算子
 
+
+
 	//////频率域
 	Mat DFT(Mat img);//离散傅里叶变换  返回一个双通道图像（旋转后）
 	Mat IDFT(Mat dftimg, int hi, int wi, float min=-1,float max=1);//离散傅里叶反变换
@@ -56,6 +58,10 @@ public:
 	Mat DFT_Filter_Inverse(Mat dftimg, Mat filter_Real, Mat filter_Imaginary);//滤波器与DFT逆滤波
 	Mat DFT_Inverse_Wiener(Mat dftimg, Mat filter_dft, float k);//维纳滤波
 	Mat DFT_Inverse_Constrained_Least_Squares_Filtering(Mat dftimg, Mat filter_dft, float l);//约束最小二乘方滤波
+
+	//杂项
+	void Huo_Fuyuan_transform();//霍夫圆变换
+
 
 	//主要内部使用API
 	int* Histogram_Group(Mat* img);//直方图数组

@@ -1127,6 +1127,7 @@ Mat CMycv::DFT_Inverse_Wiener(Mat dftimg, Mat filter_dft, float k)
 			float d = filter_Imaginary.at<float>(i, j);
 			float m = c*c + d*d;
 
+			if (m < 0.000001 || m>1000000)continue;
 			planes[0].at<float>(i, j) = (a*c + b*d) / (m+k);
 			planes[1].at<float>(i, j) = (b*c - a*d) / (m+k);
 		}
@@ -1182,4 +1183,26 @@ Mat CMycv::DFT_Inverse_Constrained_Least_Squares_Filtering(Mat dftimg, Mat filte
 
 
 	return  out;
+}
+
+
+void CMycv::Huo_Fuyuan_transform()
+{
+	IplImage* image0 = cvLoadImage("src/Í«¿×¼ì²âÊ¾Àý.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+	IplImage* image = cvLoadImage("src/Í«¿×¼ì²âÊ¾Àý.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+	//IplImage* image=NULL;//  
+	//image=cvCreateImage(cvGetSize(image0),IPL_DEPTH_8U,3);   
+	CvMemStorage* storage = cvCreateMemStorage(0);
+	cvSmooth(image0, image, CV_GAUSSIAN, 5, 5);
+	CvSeq* results = cvHoughCircles(image, storage, CV_HOUGH_GRADIENT, 2, image->width / 10);
+	for (int i = 0; i<results->total; i++)
+	{
+		float* p = (float*)cvGetSeqElem(results, i);
+		CvPoint pt = cvPoint(cvRound(p[0]), cvRound(p[1]));
+		cvCircle(image, pt, cvRound(p[2]), CV_RGB(0xff, 0xff, 0xff));
+	}
+	cvNamedWindow("source", 0);
+	cvShowImage("source", image0);
+	cvNamedWindow("cvHoughCircles", 0);
+	cvShowImage("cvHoughCircles", image);
 }
