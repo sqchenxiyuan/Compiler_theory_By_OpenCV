@@ -75,6 +75,20 @@ public:
 	//空间滤波用通用模板
 	int Filter_Median(Mat* img, int posx, int posy, int size);
 	Mat Matuchar2float(Mat img);//将Mat默认的UCHAR转换为float便于空间域处理
+
+
+	//霍夫变换
+	void HoughLine();
+	Mat Filter_Gaussian_Blur(Mat img, int size,float o);
+	Mat Canny(Mat img);
+	Mat Canny_get_x(Mat img);//返回X偏导
+	Mat Canny_get_y(Mat img);//返回Y偏导
+	Mat Canny_get_gradient(Mat x,Mat y);//返回梯度
+	Mat Canny_get_position(Mat x, Mat y);//返回方位
+	Mat Canny_nonmaximumsuppression(Mat x, Mat y,Mat M, Mat T);//非极大值抑制
+	Mat Canny_doublethresholddetection(Mat M,Mat N);//双阈值检测
+	void TraceEdge(int y, int x, int nThrLow, Mat* N, Mat M);
+	
 private:
 	void rect(Mat *img, Point sp, Point ep, int co);
 	float PointDistance(float p1x, float p1y, float p2x, float p2y);

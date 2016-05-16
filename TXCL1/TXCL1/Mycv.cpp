@@ -856,6 +856,7 @@ Mat CMycv::DFT_GLPF(int hi, int wi, float D0)
 	Mat filter(hi, wi, CV_32F, Scalar(0));
 	for (int i = 0; i < hi; i++)
 	{
+
 		for (int j = 0; j < wi; j++)
 		{
 			float d = PointDistance(i, j, hi / 2, wi / 2);
@@ -1186,14 +1187,14 @@ Mat CMycv::DFT_Inverse_Constrained_Least_Squares_Filtering(Mat dftimg, Mat filte
 }
 
 
-void CMycv::Huo_Fuyuan_transform()
+void CMycv::Huo_Fuyuan_transform()//网上霍夫圆检测测试用例
 {
 	IplImage* image0 = cvLoadImage("src/瞳孔检测示例.jpg", CV_LOAD_IMAGE_GRAYSCALE);
 	IplImage* image = cvLoadImage("src/瞳孔检测示例.jpg", CV_LOAD_IMAGE_GRAYSCALE);
 	//IplImage* image=NULL;//  
 	//image=cvCreateImage(cvGetSize(image0),IPL_DEPTH_8U,3);   
 	CvMemStorage* storage = cvCreateMemStorage(0);
-	cvSmooth(image0, image, CV_GAUSSIAN, 5, 5);
+	cvSmooth(image0, image, CV_GAUSSIAN, 9, 9);
 	CvSeq* results = cvHoughCircles(image, storage, CV_HOUGH_GRADIENT, 2, image->width / 10);
 	for (int i = 0; i<results->total; i++)
 	{
@@ -1205,4 +1206,354 @@ void CMycv::Huo_Fuyuan_transform()
 	cvShowImage("source", image0);
 	cvNamedWindow("cvHoughCircles", 0);
 	cvShowImage("cvHoughCircles", image);
+}
+
+void CMycv::HoughLine()
+{
+	Mat img = RGB_Gray(&imread("src/瞳孔检测示例.jpg", -1),1);
+	imshow("原图", img);
+	img = Canny(img);
+}
+
+Mat CMycv::Filter_Gaussian_Blur(Mat img, int size,float o)
+{
+	//获取高斯模糊模板
+	float * mask = new float[size*size];
+	int size1 = size / 2;
+	float o2 = 2 * o*o;
+
+	int ji = 0;
+	float s = 0;
+	for (int i = -size1; i <=size1; i++)
+	{
+		for (int j = -size1; j <=size1; j++)
+		{
+			mask[ji] = powf(C_E, -(i*i + j*j) / o2) / o2* C_PI;
+			s += mask[ji];
+			ji++;
+		}
+	}
+	for (int i = 0; i < size*size; i++)
+	{
+		mask[i] /= s;
+	}
+
+	//对图像模糊
+	CFilteringMask mask2(size, size, 1.0, mask);
+	return mask2.ALLProcess(&img);
+}
+
+Mat CMycv::Canny(Mat img){
+
+	//模糊处理
+	Mat img_g = Filter_Gaussian_Blur(img, 9, 1);
+	imshow("高斯模糊后", img_g);
+
+	//计算图像梯度及其方向
+	Mat img_x = Canny_get_x(img);
+	Mat img_y = Canny_get_y(img);
+	Mat img_M = Canny_get_gradient(img_x, img_y);//梯度
+	Mat img_T = Canny_get_position(img_x, img_y);//方向
+
+	//非极大值抑制
+	Mat img_N= Canny_nonmaximumsuppression(img_x, img_y, img_M, img_T);
+
+	Mat img_out = Canny_doublethresholddetection(img_M, img_N);
+	//imshow("????", img_out);
+
+	return img;
+}
+
+Mat CMycv::Canny_get_x(Mat img)
+{
+	int h = img.rows;
+	int w = img.cols;
+	Mat out(h, w, CV_32F);
+	for (int i = 0; i < h; i++)
+	{
+		for (int j = 0; j < w; j++)
+		{
+			float x1=0, x2=0;
+			x1 = img.at<uchar>(i, j);
+			x2 = x1;
+			if (i + 1 < h) x2 = img.at<uchar>(i + 1, j);
+
+
+			out.at<float>(i,j) = x2 - x1;
+
+			if (j+1 < w ){
+				x1 = img.at<uchar>(i, j+1);
+				x2 = x1;
+				if (i + 1 < h) x2 = img.at<uchar>(i + 1, j + 1);
+
+				out.at<float>(i, j) = ( out.at<float>(i, j) + x2 - x1) / 2;
+			}
+		}
+	}
+	return out;
+}
+
+Mat CMycv::Canny_get_y(Mat img)
+{
+	int h = img.rows;
+	int w = img.cols;
+	Mat out(h, w, CV_32F);
+	for (int i = 0; i < h; i++)
+	{
+		for (int j = 0; j < w; j++)
+		{
+			float x1=0, x2=0;
+			x1 = img.at<uchar>(i, j);
+			x2 = x1;
+			if (j + 1 < w) x2 = img.at<uchar>(i, j+1);
+
+
+			out.at<float>(i, j) = x2 - x1;
+
+			if (i + 1 < h){
+				x1 = img.at<uchar>(i+1, j);
+				x2 = x1;
+				if (j + 1 < w) x2 = img.at<uchar>(i + 1, j + 1);
+
+				out.at<float>(i, j) = (out.at<float>(i, j) + x2 - x1) / 2;
+			}
+		}
+	}
+	return out;
+}
+
+Mat CMycv::Canny_get_gradient(Mat x, Mat y)
+{
+	int h = x.rows;
+	int w = x.cols;
+	Mat out(h, w, CV_32F);
+	for (int i = 0; i < h; i++)
+	{
+		for (int j = 0; j < w; j++)
+		{
+			float x1 = x.at<float>(i, j);
+			float x2 = y.at<float>(i, j);
+			out.at<float>(i, j) =sqrt(x1*x1+x2*x2);
+		}
+	}
+	return out;
+}
+
+Mat CMycv::Canny_get_position(Mat x, Mat y)
+{
+	int h = x.rows;
+	int w = x.cols;
+	Mat out(h, w, CV_32F);
+	for (int i = 0; i < h; i++)
+	{
+		for (int j = 0; j < w; j++)
+		{
+			float x1 = x.at<float>(i, j);
+			float x2 = y.at<float>(i, j);
+			out.at<float>(i, j) = atan(x1/x2);
+			if (out.at<float>(i, j)<0)
+			{
+				out.at<float>(i, j) += 360;
+			}
+		}
+	}
+	return out;
+}
+
+Mat CMycv::Canny_nonmaximumsuppression(Mat X, Mat Y, Mat M, Mat T)
+{
+	int h = M.rows;
+	int w = M.cols;
+	int g1 = 0, g2 = 0, g3 = 0, g4 = 0;                            //用于进行插值，得到亚像素点坐标值  
+	double dTmp1 = 0.0, dTmp2 = 0.0;                           //保存两个亚像素点插值得到的灰度数据  
+	double dWeight = 0.0;
+
+	Mat out(h, w, CV_8U);
+
+	for (int i = 0; i < h; i++)
+	{
+		out.at<uchar>(i, 0) = 0;
+		out.at<uchar>(i, w - 1) = 0;
+	}
+	for (int i = 0; i < w; i++)
+	{
+		out.at<uchar>(0, i) = 0;
+		out.at<uchar>(h - 1, i) = 0;
+	}
+
+
+	for (int i = 1; i < h-1; i++)
+	{
+		for (int j = 1; j < w-1; j++)
+		{
+			if (M.at<float>(i, j) < 0.0000001 || M.at<float>(i, j)>-0.000001)
+				out.at<uchar>(i, j) = 0;         //如果当前梯度幅值为0，则不是局部最大对该点赋为0  
+			else
+			{
+				////////首先判断属于那种情况，然后根据情况插值///////  
+				////////////////////第一种情况///////////////////////  
+				/////////       g1  g2                  /////////////  
+				/////////           C                   /////////////  
+				/////////           g3  g4              /////////////  
+				/////////////////////////////////////////////////////  
+				if (((T.at<float>(i,j) >= 90) && (T.at<float>(i,j)<135)) ||
+					((T.at<float>(i,j) >= 270) && (T.at<float>(i,j)<315)))
+				{
+					//////根据斜率和四个中间值进行插值求解  
+					g1 = M.at<float>(i - 1, j - 1);
+					g2 = M.at<float>(i-1, j);
+					g3 = M.at<float>(i+1, j);
+					g4 = M.at<float>(i+1, j+1);
+					dWeight = fabs(X.at<float>(i, j)) / fabs(Y.at<float>(i, j));   //反正切  
+					dTmp1 = g1*dWeight + g2*(1 - dWeight);
+					dTmp2 = g4*dWeight + g3*(1 - dWeight);
+				}
+				////////////////////第二种情况///////////////////////  
+				/////////       g1                      /////////////  
+				/////////       g2  C   g3              /////////////  
+				/////////               g4              /////////////  
+				/////////////////////////////////////////////////////  
+				else if (((T.at<float>(i,j) >= 135) && (T.at<float>(i,j)<180)) ||
+					((T.at<float>(i,j) >= 315) && (T.at<float>(i,j)<360)))
+				{
+					g1 = M.at<float>(i - 1, j - 1);
+					g2 = M.at<float>(i, j - 1);
+					g3 = M.at<float>(i , j + 1);
+					g4 = M.at<float>(i + 1, j + 1);
+					dWeight = fabs(Y.at<float>(i, j)) / fabs(X.at<float>(i, j));   //正切  
+					dTmp1 = g2*dWeight + g1*(1 - dWeight);
+					dTmp2 = g4*dWeight + g3*(1 - dWeight);
+				}
+				////////////////////第三种情况///////////////////////  
+				/////////           g1  g2              /////////////  
+				/////////           C                   /////////////  
+				/////////       g4  g3                  /////////////  
+				/////////////////////////////////////////////////////  
+				else if (((T.at<float>(i,j) >= 45) && (T.at<float>(i,j)<90)) ||
+					((T.at<float>(i,j) >= 225) && (T.at<float>(i,j)<270)))
+				{
+					g1 = M.at<float>(i - 1, j);
+					g2 = M.at<float>(i - 1, j +1);
+					g3 = M.at<float>(i +1, j - 1);
+					g4 = M.at<float>(i + 1, j );
+					dWeight = fabs(X.at<float>(i, j)) / fabs(Y.at<float>(i, j));   //反正切  
+					dTmp1 = g2*dWeight + g1*(1 - dWeight);
+					dTmp2 = g3*dWeight + g4*(1 - dWeight);
+				}
+				////////////////////第四种情况///////////////////////  
+				/////////               g1              /////////////  
+				/////////       g4  C   g2              /////////////  
+				/////////       g3                      /////////////  
+				/////////////////////////////////////////////////////  
+				else if (((T.at<float>(i,j) >= 0) && (T.at<float>(i,j)<45)) ||
+					((T.at<float>(i,j) >= 180) && (T.at<float>(i,j)<225)))
+				{
+					g1 = M.at<float>(i - 1, j+1);
+					g2 = M.at<float>(i , j+1);
+					g3 = M.at<float>(i +1, j-1);
+					g4 = M.at<float>(i, j-1);
+					dWeight = fabs(Y.at<float>(i, j)) / fabs(X.at<float>(i, j));   //正切  
+					dTmp1 = g1*dWeight + g2*(1 - dWeight);
+					dTmp2 = g3*dWeight + g4*(1 - dWeight);
+				}
+			}
+			//////////进行局部最大值判断，并写入检测结果////////////////  
+			if ((M.at<float>(i, j) >= dTmp1) && (M.at<float>(i, j) >= dTmp2))
+				out.at<uchar>(i, j) = 128;
+			else
+				out.at<uchar>(i, j) = 0;
+		}
+	}
+	return out;
+}
+
+
+Mat CMycv::Canny_doublethresholddetection(Mat M, Mat N)
+{
+
+	int h = N.rows;
+	int w = N.cols;
+
+	int nHist[1024];
+	int nEdgeNum;             //可能边界数  
+	int nMaxMag = 0;          //最大梯度数  
+	int nHighCount;
+
+	for (int i = 0; i<1024; i++)
+		nHist[i] = 0;
+	for (int i = 0; i<h; i++)
+	{
+		for (int j = 0; j<w; j++)
+		{
+			if (N.at<uchar>(i, j) == 128)
+				nHist[int(M.at<float>(i, j))]++;
+		}
+	}
+
+	//获取最大梯度幅值及潜在边缘点个数
+	nEdgeNum = nHist[0];
+	nMaxMag = 0;                    //获取最大的梯度值        
+	for (int i = 1; i<1024; i++)           //统计经过“非最大值抑制”后有多少像素  
+	{
+		if (nHist[i] != 0)       //梯度为0的点是不可能为边界点的  
+		{
+			nMaxMag = i;
+		}
+		nEdgeNum += nHist[i];   //经过non-maximum suppression后有多少像素  
+	}
+	
+	//计算两个阈值
+	double  dRatHigh = 0.79;
+	double  dThrHigh;
+	double  dThrLow;
+	double  dRatLow = 0.5;
+	nHighCount = (int)(dRatHigh * nEdgeNum + 0.5);
+	int j = 1;
+	nEdgeNum = nHist[1];
+	while ((j<(nMaxMag - 1)) && (nEdgeNum < nHighCount))
+	{
+		j++;
+		nEdgeNum += nHist[j];
+	}
+	dThrHigh = j;                                   //高阈值  
+	dThrLow = (int)((dThrHigh)* dRatLow + 0.5);    //低阈值  
+
+	//进行边缘检测
+	for (int i = 0; i<h; i++)
+	{
+		for (int j = 0; j<w; j++)
+		{
+			if ((N.at<uchar>(i, j) == 128) && (M.at<float>(i, j) >= dThrHigh))
+			{
+				N.at<uchar>(i, j) = 255;
+				TraceEdge(i, j, dThrLow, &N, M);
+			}
+		}
+	}
+
+	return N;
+
+}
+
+void CMycv::TraceEdge(int y, int x, int nThrLow, Mat* N, Mat M)
+{
+	int h = N->rows;
+	int w = N->cols;
+	//对8邻域像素进行查询  
+	int xNum[8] = { 1, 1, 0, -1, -1, -1, 0, 1 };
+	int yNum[8] = { 0, 1, 1, 1, 0, -1, -1, -1 };
+	int k;
+	float yy, xx;
+	for (k = 0; k<8; k++)
+	{
+		yy = y + yNum[k];
+		xx = x + xNum[k];
+		if (N->at<float>(yy, xx) == 128 && M.at<float>(yy, xx) >= nThrLow)
+		{
+			//该点设为边界点  
+			N->at<float>(yy, xx) = 255;
+			//以该点为中心再进行跟踪  
+			TraceEdge(yy, xx, nThrLow, N, M);
+		}
+	}
 }

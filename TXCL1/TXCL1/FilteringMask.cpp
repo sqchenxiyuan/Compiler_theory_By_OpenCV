@@ -13,6 +13,18 @@ CFilteringMask::CFilteringMask(int s_w, int s_h, float x, int* mask)
 		//cout << m_mask.at(i);
 	}
 }
+
+CFilteringMask::CFilteringMask(int s_w, int s_h, float x, float* mask)
+{
+	m_size_w = s_w;
+	m_size_h = s_h;
+	m_x = x;
+	for (int i = 0; i < s_w*s_h; i++)
+	{
+		m_mask.push_back(mask[i]);
+		//cout << m_mask.at(i);
+	}
+}
 CFilteringMask::CFilteringMask(int s_w, int s_h, float x, vector<int>* mask)
 {
 	m_size_w = s_w;

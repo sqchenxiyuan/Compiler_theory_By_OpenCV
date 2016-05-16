@@ -167,6 +167,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	//imshow("Ö±·½Í¼ÓÃÓÚ½ÃÕıÑÕÉ«", mcv.Histogram(&zimg, 256, 1024));
 	//imshow("Ğ£ÕıºóÄæÂË²¨³É¹û", zimg);
 
+
+
 	////////////////////    Î¬ÄÉÂË²¨    ////////////////////
 	/*Mat mo_Wiener_0 = mcv.DFT_Inverse_Wiener(modft, fltdft, 0);
 	Mat mo_Wiener_1 = mcv.DFT_Inverse_Wiener(modft, fltdft, 1);
@@ -177,8 +179,6 @@ int _tmain(int argc, _TCHAR* argv[])
 	Mat mo_Wiener_50000 = mcv.DFT_Inverse_Wiener(modft, fltdft, 50000);
 	Mat mo_Wiener_100000 = mcv.DFT_Inverse_Wiener(modft, fltdft, 100000);
 	
-
-
 	imshow("Î¬ÄÉÂË²¨ k=0", mcv.IDFT(mo_Wiener_0, motest.rows, motest.cols, 0));
 	imshow("Î¬ÄÉÂË²¨ k=1", mcv.IDFT(mo_Wiener_1, motest.rows, motest.cols, 0));
 	imshow("Î¬ÄÉÂË²¨ k=10", mcv.IDFT(mo_Wiener_10, motest.rows, motest.cols, 0));
@@ -207,7 +207,8 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	/////////////////////    ±ßÔµ¼ì²â   Í«¿×¼ì²â   /////////////////////
 
-	mcv.Huo_Fuyuan_transform();
+	//mcv.Huo_Fuyuan_transform();
+	mcv.HoughLine();
 	
 
 	waitKey();
