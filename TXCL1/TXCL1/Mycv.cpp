@@ -1212,7 +1212,8 @@ void CMycv::HoughLine()
 {
 	Mat img = RGB_Gray(&imread("src/瞳孔检测示例.jpg", -1),1);
 	imshow("原图", img);
-	img = Canny(img);
+	Mat img_canny = Canny(img);
+	imshow("canny处理后", img_canny);
 }
 
 Mat CMycv::Filter_Gaussian_Blur(Mat img, int size,float o)
@@ -1259,9 +1260,8 @@ Mat CMycv::Canny(Mat img){
 	Mat img_N= Canny_nonmaximumsuppression(img_x, img_y, img_M, img_T);
 
 	Mat img_out = Canny_doublethresholddetection(img_M, img_N);
-	//imshow("????", img_out);
 
-	return img;
+	return img_out;
 }
 
 Mat CMycv::Canny_get_x(Mat img)
@@ -1288,6 +1288,7 @@ Mat CMycv::Canny_get_x(Mat img)
 
 				out.at<float>(i, j) = ( out.at<float>(i, j) + x2 - x1) / 2;
 			}
+
 		}
 	}
 	return out;
@@ -1350,11 +1351,12 @@ Mat CMycv::Canny_get_position(Mat x, Mat y)
 		{
 			float x1 = x.at<float>(i, j);
 			float x2 = y.at<float>(i, j);
-			out.at<float>(i, j) = atan(x1/x2);
+			out.at<float>(i, j) = atan2(x1,x2)/C_PI*360;
 			if (out.at<float>(i, j)<0)
 			{
 				out.at<float>(i, j) += 360;
 			}
+
 		}
 	}
 	return out;
@@ -1386,7 +1388,7 @@ Mat CMycv::Canny_nonmaximumsuppression(Mat X, Mat Y, Mat M, Mat T)
 	{
 		for (int j = 1; j < w-1; j++)
 		{
-			if (M.at<float>(i, j) < 0.0000001 || M.at<float>(i, j)>-0.000001)
+			if (M.at<float>(i, j) < 0.0000001 && M.at<float>(i, j)>-0.000001)
 				out.at<uchar>(i, j) = 0;         //如果当前梯度幅值为0，则不是局部最大对该点赋为0  
 			else
 			{
@@ -1458,7 +1460,7 @@ Mat CMycv::Canny_nonmaximumsuppression(Mat X, Mat Y, Mat M, Mat T)
 				}
 			}
 			//////////进行局部最大值判断，并写入检测结果////////////////  
-			if ((M.at<float>(i, j) >= dTmp1) && (M.at<float>(i, j) >= dTmp2))
+			if (M.at<float>(i, j) >= dTmp1&& M.at<float>(i, j) >= dTmp2)
 				out.at<uchar>(i, j) = 128;
 			else
 				out.at<uchar>(i, j) = 0;
@@ -1526,7 +1528,19 @@ Mat CMycv::Canny_doublethresholddetection(Mat M, Mat N)
 			if ((N.at<uchar>(i, j) == 128) && (M.at<float>(i, j) >= dThrHigh))
 			{
 				N.at<uchar>(i, j) = 255;
-				TraceEdge(i, j, dThrLow, &N, M);
+				TraceEdge(i, j, dThrLow, &N, &M);
+			}
+		}
+	}
+	
+	//去除多余的点
+	for (int i = 0; i<h; i++)
+	{
+		for (int j = 0; j<w; j++)
+		{
+			if (N.at<uchar>(i, j) == 128)
+			{
+				N.at<uchar>(i, j) = 0;
 			}
 		}
 	}
@@ -1535,7 +1549,7 @@ Mat CMycv::Canny_doublethresholddetection(Mat M, Mat N)
 
 }
 
-void CMycv::TraceEdge(int y, int x, int nThrLow, Mat* N, Mat M)
+void CMycv::TraceEdge(int y, int x, int nThrLow, Mat* N, Mat* M)
 {
 	int h = N->rows;
 	int w = N->cols;
@@ -1543,15 +1557,18 @@ void CMycv::TraceEdge(int y, int x, int nThrLow, Mat* N, Mat M)
 	int xNum[8] = { 1, 1, 0, -1, -1, -1, 0, 1 };
 	int yNum[8] = { 0, 1, 1, 1, 0, -1, -1, -1 };
 	int k;
-	float yy, xx;
+	int yy, xx;
 	for (k = 0; k<8; k++)
 	{
 		yy = y + yNum[k];
 		xx = x + xNum[k];
-		if (N->at<float>(yy, xx) == 128 && M.at<float>(yy, xx) >= nThrLow)
+
+		if (yy < 0||yy>=h||xx<0||x>=w) continue;
+
+		if (N->at<uchar>(yy, xx) == 128 && M->at<float>(yy, xx) >= nThrLow)
 		{
 			//该点设为边界点  
-			N->at<float>(yy, xx) = 255;
+			N->at<uchar>(yy, xx) = 255;
 			//以该点为中心再进行跟踪  
 			TraceEdge(yy, xx, nThrLow, N, M);
 		}

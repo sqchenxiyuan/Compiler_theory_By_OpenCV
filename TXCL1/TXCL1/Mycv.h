@@ -87,7 +87,7 @@ public:
 	Mat Canny_get_position(Mat x, Mat y);//返回方位
 	Mat Canny_nonmaximumsuppression(Mat x, Mat y,Mat M, Mat T);//非极大值抑制
 	Mat Canny_doublethresholddetection(Mat M,Mat N);//双阈值检测
-	void TraceEdge(int y, int x, int nThrLow, Mat* N, Mat M);
+	void TraceEdge(int y, int x, int nThrLow, Mat* N, Mat* M);
 	
 private:
 	void rect(Mat *img, Point sp, Point ep, int co);
