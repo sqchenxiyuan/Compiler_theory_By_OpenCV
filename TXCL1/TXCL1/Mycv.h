@@ -68,10 +68,6 @@ public:
 	Mat DFT_Inverse_Wiener(Mat dftimg, Mat filter_dft, float k);//维纳滤波
 	Mat DFT_Inverse_Constrained_Least_Squares_Filtering(Mat dftimg, Mat filter_dft, float l);//约束最小二乘方滤波
 
-	//杂项
-	void Huo_Fuyuan_transform();//霍夫圆变换
-
-
 	//主要内部使用API
 	int* Histogram_Group(Mat* img);//直方图数组
 	float* Cumulative(int* c, float size);//累积直方图数组

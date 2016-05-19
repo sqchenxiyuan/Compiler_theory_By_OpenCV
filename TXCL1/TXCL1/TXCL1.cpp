@@ -7,6 +7,9 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	CMycv mcv;
 	
+
+	/////////////////////////////////////////////////////////////////////第一次作业
+
 	//Mat img = imread("src/test1.jpg", -1);
 	////获取直方图
 	//Mat hist = mcv.RGB_Histogram(&img, 256, 256);
@@ -53,6 +56,10 @@ int _tmain(int argc, _TCHAR* argv[])
 	imshow("拉布拉斯算子3-轮廓", Laplasse3);
 	imshow("拉布拉斯算子4-轮廓", Laplasse4);
 	imshow("拉普拉斯测试用例", lapltest_k);*/
+
+
+
+	/////////////////////////////////////////////////////////////////////第二次作业
 
 	//DFT
 	/*Mat dfttest = imread("src/DFT_IDFT测试用例.tif", -1);
@@ -131,6 +138,8 @@ int _tmain(int argc, _TCHAR* argv[])
 
 
 
+	/////////////////////////////////////////////////////////////////////第三次作业
+
 	/////////////////////    图像复原 逆滤波    /////////////////////
 
 	//Mat motest = mcv.RGB_Gray(& imread("src/test1.jpg",-1),1);
@@ -160,12 +169,12 @@ int _tmain(int argc, _TCHAR* argv[])
 	//imshow("模糊后图像", moimg);
 
 
-	///////////////////////////////展示用
-	//Mat mo_Wiener= mcv.DFT_Inverse_Wiener(modft, fltdft, 10);
-	//imshow("原图直方图", mcv.Histogram(&motest, 256, 1024));
-	//Mat zimg = mcv.IDFT(mo_Wiener, motest.rows, motest.cols, -2.2, 3);
-	//imshow("直方图用于矫正颜色", mcv.Histogram(&zimg, 256, 1024));
-	//imshow("校正后逆滤波成果", zimg);
+	///////////////////////////////展示用 =====================================请将上方的代码去掉注释
+	/*Mat mo_Wiener= mcv.DFT_Inverse_Wiener(modft, fltdft, 10);
+	imshow("原图直方图", mcv.Histogram(&motest, 256, 1024));
+	Mat zimg = mcv.IDFT(mo_Wiener, motest.rows, motest.cols, -2.2, 3);
+	imshow("直方图用于矫正颜色", mcv.Histogram(&zimg, 256, 1024));
+	imshow("校正后逆滤波成果", zimg);*/
 
 
 
@@ -203,15 +212,11 @@ int _tmain(int argc, _TCHAR* argv[])
 
 
 
-
-
-	/////////////////////    边缘检测   瞳孔检测   /////////////////////
-
-	//mcv.Huo_Fuyuan_transform();
-	Mat img = imread("src/瞳孔检测示例.jpg",-1);
+	/////////////////////    边缘检测   瞳孔检测   =====================================
+	/*Mat img = imread("src/瞳孔检测示例.jpg",-1);
 	Mat huoimg= mcv.HoughCircl(img,30,40,1,200);
 	imshow("原图", img);
-	imshow("处理后", huoimg);
+	imshow("处理后", huoimg);*/
 	
 
 	waitKey();

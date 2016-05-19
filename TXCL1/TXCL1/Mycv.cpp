@@ -1071,7 +1071,6 @@ Mat CMycv::DFT_GHPF(Mat img, float D0)
 	return idft;
 }
 
-
 Mat CMycv::Matuchar2float(Mat img)
 {
 	int hi = img.rows;
@@ -1088,7 +1087,6 @@ Mat CMycv::Matuchar2float(Mat img)
 	return out;
 }
 
-
 Mat CMycv::SChangeImgSize(Mat img, float hi, float wi)
 {
 
@@ -1102,7 +1100,6 @@ Mat CMycv::SChangeImgSize(Mat img, float hi, float wi)
 	}
 	return out;
 }
-
 
 Mat CMycv::DFT_Inverse_Wiener(Mat dftimg, Mat filter_dft, float k)
 {
@@ -1141,7 +1138,6 @@ Mat CMycv::DFT_Inverse_Wiener(Mat dftimg, Mat filter_dft, float k)
 
 	return  out;
 }
-
 
 Mat CMycv::DFT_Inverse_Constrained_Least_Squares_Filtering(Mat dftimg, Mat filter_dft, float l)
 {
@@ -1187,46 +1183,26 @@ Mat CMycv::DFT_Inverse_Constrained_Least_Squares_Filtering(Mat dftimg, Mat filte
 }
 
 
-void CMycv::Huo_Fuyuan_transform()//网上霍夫圆检测测试用例
-{
-	IplImage* image0 = cvLoadImage("src/瞳孔检测示例.jpg", CV_LOAD_IMAGE_GRAYSCALE);
-	IplImage* image = cvLoadImage("src/瞳孔检测示例.jpg", CV_LOAD_IMAGE_GRAYSCALE);
-	//IplImage* image=NULL;//  
-	//image=cvCreateImage(cvGetSize(image0),IPL_DEPTH_8U,3);   
-	CvMemStorage* storage = cvCreateMemStorage(0);
-	cvSmooth(image0, image, CV_GAUSSIAN, 9, 9);
-	CvSeq* results = cvHoughCircles(image, storage, CV_HOUGH_GRADIENT, 2, image->width / 10);
-	for (int i = 0; i<results->total; i++)
-	{
-		float* p = (float*)cvGetSeqElem(results, i);
-		CvPoint pt = cvPoint(cvRound(p[0]), cvRound(p[1]));
-		cvCircle(image, pt, cvRound(p[2]), CV_RGB(0xff, 0xff, 0xff));
-	}
-	cvNamedWindow("source", 0);
-	cvShowImage("source", image0);
-	cvNamedWindow("cvHoughCircles", 0);
-	cvShowImage("cvHoughCircles", image);
-}
 
 Mat CMycv::HoughCircl(Mat img, float min_r, float max_r, float d_r, float min_angle)
 {
 	//imshow("原图", img);
-	cout << "转化灰度图..." << endl;
+	cout << "霍夫圆处理：转化灰度图..." << endl;
 	Mat img_gray = RGB_Gray(&img,1);
 	//imshow("灰度图", img_gray);
-	cout << "Canny处理..." << endl;
+	cout << "霍夫圆处理：Canny处理..." << endl;
 	Mat img_canny = Canny(img_gray,9,10);
 	//imshow("canny处理后", img_canny);
 
-	cout << "霍夫圆处理中..." << endl;
+	cout << "霍夫圆处理：霍夫圆处理中..." << endl;
 	vector<C_circle> circles = HoughCircl(img, img_canny, min_r, max_r, d_r, min_angle, 2);
 
-	cout << "寻找最大重叠" << endl;
+	cout << "霍夫圆处理：寻找最大重叠" << endl;
 	Mat out=img.clone();
 	int s = circles.size();
 
 	if (s == 0){
-		cout << "没有找到合适的圆，请改变参数!" << endl;
+		cout << "霍夫圆处理：没有找到合适的圆，请改变参数!" << endl;
 		return img;
 	}
 
@@ -1239,10 +1215,10 @@ Mat CMycv::HoughCircl(Mat img, float min_r, float max_r, float d_r, float min_an
 	C_circle c = circles.at(max);
 
 
-	cout << "画圆中" << endl;
+	cout << "霍夫圆处理：画圆中" << endl;
 	circle(&out, c.pos, c.r, c.size, Scalar(0, 0, 255));
 
-
+	cout << "霍夫圆处理：处理完成" << endl;
 	return out;
 	//imshow("圆处理", out);
 }
@@ -1279,7 +1255,7 @@ Mat CMycv::Canny(Mat img,float g_size,float f_o){
 
 	//模糊处理
 	Mat img_g = Filter_Gaussian_Blur(img, g_size, f_o);
-	//imshow("高斯模糊后", img_g);
+	imshow("Canny_高斯模糊后", img_g);
 
 	//计算图像梯度及其方向
 	Mat img_x = Canny_get_x(img_g);
