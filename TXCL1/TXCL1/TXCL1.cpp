@@ -208,7 +208,10 @@ int _tmain(int argc, _TCHAR* argv[])
 	/////////////////////    ±ßÔµ¼ì²â   Í«¿×¼ì²â   /////////////////////
 
 	//mcv.Huo_Fuyuan_transform();
-	mcv.HoughLine();
+	Mat img = imread("src/Í«¿×¼ì²âÊ¾Àý.jpg",-1);
+	Mat huoimg= mcv.HoughCircl(img,30,40,1,200);
+	imshow("Ô­Í¼", img);
+	imshow("´¦Àíºó", huoimg);
 	
 
 	waitKey();

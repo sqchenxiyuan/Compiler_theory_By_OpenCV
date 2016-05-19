@@ -1208,12 +1208,43 @@ void CMycv::Huo_Fuyuan_transform()//网上霍夫圆检测测试用例
 	cvShowImage("cvHoughCircles", image);
 }
 
-void CMycv::HoughLine()
+Mat CMycv::HoughCircl(Mat img, float min_r, float max_r, float d_r, float min_angle)
 {
-	Mat img = RGB_Gray(&imread("src/瞳孔检测示例.jpg", -1),1);
-	imshow("原图", img);
-	Mat img_canny = Canny(img);
-	imshow("canny处理后", img_canny);
+	//imshow("原图", img);
+	cout << "转化灰度图..." << endl;
+	Mat img_gray = RGB_Gray(&img,1);
+	//imshow("灰度图", img_gray);
+	cout << "Canny处理..." << endl;
+	Mat img_canny = Canny(img_gray,9,10);
+	//imshow("canny处理后", img_canny);
+
+	cout << "霍夫圆处理中..." << endl;
+	vector<C_circle> circles = HoughCircl(img, img_canny, min_r, max_r, d_r, min_angle, 2);
+
+	cout << "寻找最大重叠" << endl;
+	Mat out=img.clone();
+	int s = circles.size();
+
+	if (s == 0){
+		cout << "没有找到合适的圆，请改变参数!" << endl;
+		return img;
+	}
+
+	int max=0;
+	for (int i = 0; i < s; i++)
+	{
+		C_circle c = circles.at(i);
+		if (circles.at(i).wight>circles.at(max).wight) max = i;
+	}
+	C_circle c = circles.at(max);
+
+
+	cout << "画圆中" << endl;
+	circle(&out, c.pos, c.r, c.size, Scalar(0, 0, 255));
+
+
+	return out;
+	//imshow("圆处理", out);
 }
 
 Mat CMycv::Filter_Gaussian_Blur(Mat img, int size,float o)
@@ -1244,17 +1275,22 @@ Mat CMycv::Filter_Gaussian_Blur(Mat img, int size,float o)
 	return mask2.ALLProcess(&img);
 }
 
-Mat CMycv::Canny(Mat img){
+Mat CMycv::Canny(Mat img,float g_size,float f_o){
 
 	//模糊处理
-	Mat img_g = Filter_Gaussian_Blur(img, 9, 1);
-	imshow("高斯模糊后", img_g);
+	Mat img_g = Filter_Gaussian_Blur(img, g_size, f_o);
+	//imshow("高斯模糊后", img_g);
 
 	//计算图像梯度及其方向
-	Mat img_x = Canny_get_x(img);
-	Mat img_y = Canny_get_y(img);
+	Mat img_x = Canny_get_x(img_g);
+	Mat img_y = Canny_get_y(img_g);
 	Mat img_M = Canny_get_gradient(img_x, img_y);//梯度
 	Mat img_T = Canny_get_position(img_x, img_y);//方向
+
+	/*cout << img_x.at<float>(10, 10) << endl;
+	cout << img_y.at<float>(10, 10) << endl;
+	cout << img_M.at<float>(10, 10) << endl;
+	cout << img_T.at<float>(10, 10) << endl;*/
 
 	//非极大值抑制
 	Mat img_N= Canny_nonmaximumsuppression(img_x, img_y, img_M, img_T);
@@ -1388,7 +1424,8 @@ Mat CMycv::Canny_nonmaximumsuppression(Mat X, Mat Y, Mat M, Mat T)
 	{
 		for (int j = 1; j < w-1; j++)
 		{
-			if (M.at<float>(i, j) < 0.0000001 && M.at<float>(i, j)>-0.000001)
+			float x = M.at<float>(i, j);
+			if (M.at<float>(i, j) < 0.0000001 && M.at<float>(i, j)>-0.000001 || M.at<float>(i, j)==0)
 				out.at<uchar>(i, j) = 0;         //如果当前梯度幅值为0，则不是局部最大对该点赋为0  
 			else
 			{
@@ -1458,17 +1495,17 @@ Mat CMycv::Canny_nonmaximumsuppression(Mat X, Mat Y, Mat M, Mat T)
 					dTmp1 = g1*dWeight + g2*(1 - dWeight);
 					dTmp2 = g3*dWeight + g4*(1 - dWeight);
 				}
+
+				//////////进行局部最大值判断，并写入检测结果////////////////  
+				if (M.at<float>(i, j) >= dTmp1&& M.at<float>(i, j) >= dTmp2)
+					out.at<uchar>(i, j) = 128;
+				else
+					out.at<uchar>(i, j) = 0;
 			}
-			//////////进行局部最大值判断，并写入检测结果////////////////  
-			if (M.at<float>(i, j) >= dTmp1&& M.at<float>(i, j) >= dTmp2)
-				out.at<uchar>(i, j) = 128;
-			else
-				out.at<uchar>(i, j) = 0;
 		}
 	}
 	return out;
 }
-
 
 Mat CMycv::Canny_doublethresholddetection(Mat M, Mat N)
 {
@@ -1571,6 +1608,107 @@ void CMycv::TraceEdge(int y, int x, int nThrLow, Mat* N, Mat* M)
 			N->at<uchar>(yy, xx) = 255;
 			//以该点为中心再进行跟踪  
 			TraceEdge(yy, xx, nThrLow, N, M);
+		}
+	}
+}
+
+vector<C_circle> CMycv::HoughCircl(Mat oimg, Mat img, float min_r, float max_r, float d_r, float min_angle, float circle_size, Scalar co)
+{
+	Mat out(oimg);
+	vector<C_circle> circles;
+
+	for (float r = min_r; r <= max_r; r += d_r)
+	{
+		cout << "正在处理" << r << "长的边，请等待" << endl;
+		vector<C_circle> new_circles=HoughCircl_oneR(&img, r, min_angle, circle_size, co);
+		int s = new_circles.size();
+		cout << "检测出"<<s<<"个圆" << endl;
+		for (int i = 0; i < s; i++)
+		{
+			circles.push_back(new_circles.at(i));
+		}
+	}
+	return circles;
+}
+
+vector<C_circle> CMycv::HoughCircl_oneR(Mat* img, float r, float angle, float circle_size, Scalar co)
+{
+	int h = img->rows;
+	int w = img->cols;
+
+	Mat B(h, w, CV_32F,Scalar(0));
+	vector<C_circle> circles;
+
+	for (int i = 0; i < h; i++)
+	{
+		for (int j = 0; j < w; j++)
+		{
+			B.at<float>(i, j) = 0;
+		}
+	}
+
+	int x0, y0;
+	float t;	    
+	for (int i = 0; i < h;i++)
+	{
+		for (int j = 0; j < w;j++)
+		{
+			if (img->at<uchar>(i,j) == 255)
+			{
+				for (int theta = 0; theta < 360; theta++)
+				{
+					t = (theta * C_PI) / 180; // 角度值0 ~ 2*PI  
+						x0 = (int)(i - r * cos(t));
+						y0 = (int)(j - r * sin(t));
+					if (x0 < h && x0 > 0 && y0 < w && y0 > 0)
+					{
+						B.at<float>(x0, y0) = B.at<float>(x0, y0)+1;
+					}
+				}
+			}
+		}
+	}
+	for (int i = 0; i < h; i++)
+	{
+		for (int j = 0; j < w; j++)
+		{
+			if (B.at<float>(i,j)>=angle)
+			{
+				float x = i;
+				float y = j;
+
+				C_circle new_circle;
+				new_circle.pos = Point2f(x, y);
+				new_circle.r = r;
+				new_circle.size = circle_size;
+				new_circle.wight = B.at<float>(i, j);
+
+				circles.push_back(new_circle);
+			}
+		}
+	}
+	return circles;
+}
+
+void CMycv::circle(Mat* img, Point sp, float r, float size, Scalar co)
+{
+	int h = img->rows;
+	int w = img->cols;
+	float min_r = (r - size / 2)*(r - size / 2);
+	float max_r = (r + size / 2)*(r + size / 2);
+	for (int i = 0; i < h; i++)
+	{
+		for (int j = 0; j < w; j++)
+		{
+			float x = i-sp.x;
+			float y = j-sp.y;
+			float d = x*x + y*y;
+			if (d>min_r && d<max_r)
+			{
+				img->at<Vec3b>(i, j)[0] = co[0];
+				img->at<Vec3b>(i, j)[1] = co[1];
+				img->at<Vec3b>(i, j)[2] = co[2];
+			}
 		}
 	}
 }
