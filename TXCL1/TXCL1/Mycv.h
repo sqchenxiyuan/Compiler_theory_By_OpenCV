@@ -2,6 +2,15 @@
 #define	C_E 2.718281
 #define C_PI 3.141592
 
+struct C_circle
+{
+	Point2f pos;
+	float r;
+	float size;
+	float wight;
+};
+
+
 class CMycv
 {
 public:
@@ -75,8 +84,26 @@ public:
 	//空间滤波用通用模板
 	int Filter_Median(Mat* img, int posx, int posy, int size);
 	Mat Matuchar2float(Mat img);//将Mat默认的UCHAR转换为float便于空间域处理
+
+
+	//霍夫变换
+	Mat HoughCircl(Mat img, float min_r, float max_r, float d_r, float min_angle);
+	Mat Filter_Gaussian_Blur(Mat img, int size,float o);
+	Mat Canny(Mat img, float g_size, float f_o);
+	Mat Canny_get_x(Mat img);//返回X偏导
+	Mat Canny_get_y(Mat img);//返回Y偏导
+	Mat Canny_get_gradient(Mat x,Mat y);//返回梯度
+	Mat Canny_get_position(Mat x, Mat y);//返回方位
+	Mat Canny_nonmaximumsuppression(Mat x, Mat y,Mat M, Mat T);//非极大值抑制
+	Mat Canny_doublethresholddetection(Mat M,Mat N);//双阈值检测
+	void TraceEdge(int y, int x, int nThrLow, Mat* N, Mat* M);
+
+	vector<C_circle> HoughCircl(Mat oimg, Mat img, float min_r, float max_r, float d_r, float min_angle, float circle_size = 5, Scalar co = Scalar(0, 0, 255));
+	vector<C_circle> HoughCircl_oneR(Mat *img, float r, float angle, float circle_size = 5, Scalar co = Scalar(0, 0, 255));
+	
 private:
 	void rect(Mat *img, Point sp, Point ep, int co);
+	void circle(Mat *img, Point sp, float r, float size,Scalar co);
 	float PointDistance(float p1x, float p1y, float p2x, float p2y);
 	Mat SChangeImgSize(Mat img, float hi, float wi);//简单的放大缩小
 

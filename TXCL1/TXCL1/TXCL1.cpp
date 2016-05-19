@@ -167,6 +167,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	//imshow("直方图用于矫正颜色", mcv.Histogram(&zimg, 256, 1024));
 	//imshow("校正后逆滤波成果", zimg);
 
+
+
 	////////////////////    维纳滤波    ////////////////////
 	/*Mat mo_Wiener_0 = mcv.DFT_Inverse_Wiener(modft, fltdft, 0);
 	Mat mo_Wiener_1 = mcv.DFT_Inverse_Wiener(modft, fltdft, 1);
@@ -177,8 +179,6 @@ int _tmain(int argc, _TCHAR* argv[])
 	Mat mo_Wiener_50000 = mcv.DFT_Inverse_Wiener(modft, fltdft, 50000);
 	Mat mo_Wiener_100000 = mcv.DFT_Inverse_Wiener(modft, fltdft, 100000);
 	
-
-
 	imshow("维纳滤波 k=0", mcv.IDFT(mo_Wiener_0, motest.rows, motest.cols, 0));
 	imshow("维纳滤波 k=1", mcv.IDFT(mo_Wiener_1, motest.rows, motest.cols, 0));
 	imshow("维纳滤波 k=10", mcv.IDFT(mo_Wiener_10, motest.rows, motest.cols, 0));
@@ -207,7 +207,11 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	/////////////////////    边缘检测   瞳孔检测   /////////////////////
 
-	mcv.Huo_Fuyuan_transform();
+	//mcv.Huo_Fuyuan_transform();
+	Mat img = imread("src/瞳孔检测示例.jpg",-1);
+	Mat huoimg= mcv.HoughCircl(img,30,40,1,200);
+	imshow("原图", img);
+	imshow("处理后", huoimg);
 	
 
 	waitKey();
